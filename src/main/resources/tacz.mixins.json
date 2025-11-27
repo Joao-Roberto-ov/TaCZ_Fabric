@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.tacz.guns.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "common.LivingEntityMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
