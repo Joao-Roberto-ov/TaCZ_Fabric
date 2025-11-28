@@ -1,7 +1,7 @@
 package com.tacz.guns.resource.pojo;
 
 import com.google.gson.annotations.SerializedName;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
@@ -17,7 +17,7 @@ public class BlockIndexPOJO {
     private ResourceLocation data;
 
     @SerializedName("id")
-    private ResourceLocation id = new ResourceLocation(GunModFabric.MOD_ID, "gun_smith_table");
+    private ResourceLocation id = new ResourceLocation(GunMod.MOD_ID, "gun_smith_table");
 
     @SerializedName("stack_size")
     private int stackSize;

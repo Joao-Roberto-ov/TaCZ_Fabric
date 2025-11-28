@@ -7,75 +7,68 @@ import com.tacz.guns.api.modifier.CacheValue;
 import com.tacz.guns.resource.pojo.data.gun.GunData;
 import com.tacz.guns.util.AttachmentDataUtils;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
+
 
 import java.util.List;
 import java.util.Map;
 
+import static org.jetbrains.annotations.ApiStatus.*;
+
 /**
- * Cache de cálculo de modificadores de acessórios.
+ * 所有与配件缓存计算相关的都在这里
  */
 public class AttachmentCacheProperty {
     @SuppressWarnings("rawtypes")
     private final Map<String, CacheValue> cacheValues = Maps.newHashMap();
     private final Map<String, List<?>> cacheModifiers = Maps.newHashMap();
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings("all")
     public void eval(ItemStack gunItem, GunData gunData) {
-        // 1. Inicializa os valores base
+        // 数值初始化
         var modifiers = AttachmentPropertyManager.getModifiers();
         modifiers.forEach((id, value) -> {
             cacheValues.put(id, value.initCache(gunItem, gunData));
             cacheModifiers.put(id, Lists.newArrayList());
         });
 
-        // 2. Lê os acessórios instalados na arma
-        // NOTA IMPORTANTE PARA O PORT: O método AttachmentDataUtils.getAllAttachmentData
-        // precisará ser reescrito internamente para ler DataComponents em vez de NBT.
+        // 逐个读取配件属性，写入 modifier
         AttachmentDataUtils.getAllAttachmentData(gunItem, gunData, data -> {
             data.getModifier().forEach((id, value) -> {
                 List objects = cacheModifiers.get(id);
-                if (objects != null) {
-                    objects.add(value.getValue());
-                }
+                objects.add(value.getValue());
             });
         });
 
-        // 3. Calcula o resultado final e armazena no cache
+        // 最后一次性计算完毕，并存入缓存
         cacheValues.forEach((id, value) -> {
             List cacheModifier = cacheModifiers.get(id);
+            // 可能该枪没有这个 modifier 或者 modifier 为空
             if (cacheModifier == null || cacheModifier.isEmpty()) {
                 return;
             }
             modifiers.get(id).eval(cacheModifier, value);
         });
 
-        // 4. Limpa listas temporárias
+        // 清除不必要的数据，防止内存占用
         cacheModifiers.clear();
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getCache(String id) {
-        CacheValue cv = cacheValues.get(id);
-        return cv != null ? (T) cv.getValue() : null;
+        return (T) cacheValues.get(id).getValue();
     }
 
-    @ApiStatus.Experimental
+    @Experimental
     public <T> T getCache(GunProperty<T> key) {
-        CacheValue cv = cacheValues.get(key.name());
-        return cv != null ? key.type().cast(cv.getValue()) : null;
+        return key.type().cast(cacheValues.get(key.name()).getValue());
     }
 
-    @ApiStatus.Experimental
+    @Experimental
     @SuppressWarnings("unchecked")
     public <T> void setCache(GunProperty<T> key, T value) {
         if (!key.type().isInstance(value)) {
-            throw new IllegalArgumentException("Gun cache type mismatch, needs %s, found %s"
-                    .formatted(key.type().getSimpleName(), value.getClass().getSimpleName()));
+            throw new IllegalArgumentException("Gun cache type mismatch, needs %s, found %s".formatted(key.type().getSimpleName(), value.getClass().getSimpleName()));
         }
-        CacheValue cv = cacheValues.get(key.name());
-        if (cv != null) {
-            cv.setValue(value);
-        }
+        cacheValues.get(key.name()).setValue(value);
     }
 }

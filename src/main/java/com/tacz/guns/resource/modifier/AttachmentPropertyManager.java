@@ -1,16 +1,19 @@
 package com.tacz.guns.resource.modifier;
 
 import com.google.common.collect.Maps;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.entity.IGunOperator;
+import com.tacz.guns.api.event.common.AttachmentPropertyEvent;
 import com.tacz.guns.api.item.IGun;
 import com.tacz.guns.api.modifier.IAttachmentModifier;
+import com.tacz.guns.event.ChangeGunPropertyEvent;
 import com.tacz.guns.resource.modifier.custom.*;
 import com.tacz.guns.resource.pojo.data.attachment.Modifier;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.lang3.StringUtils;
 import org.luaj.vm2.script.LuaScriptEngineFactory;
 
@@ -55,12 +58,13 @@ public class AttachmentPropertyManager {
         ResourceLocation gunId = iGun.getGunId(gunItem);
         TimelessAPI.getCommonGunIndex(gunId).ifPresent(index -> {
             AttachmentCacheProperty cacheProperty = new AttachmentCacheProperty();
-
-            // Calcula os modificadores
-            cacheProperty.eval(gunItem, index.getGunData());
-
-            // Atualiza o cache na entidade
-            IGunOperator.fromLivingEntity(shooter).setCacheProperty(cacheProperty);
+            // 发布事件
+            AttachmentPropertyEvent event = new AttachmentPropertyEvent(gunItem, cacheProperty);
+            ChangeGunPropertyEvent.internalOnAttachmentPropertyEvent(event);
+            event.postEventToKubeJS(event);
+            MinecraftForge.EVENT_BUS.post(event);
+            // 更新实体的缓存对象
+            IGunOperator.fromLivingEntity(shooter).updateCacheProperty(cacheProperty);
         });
     }
 
@@ -91,8 +95,10 @@ public class AttachmentPropertyManager {
 
     public static boolean eval(List<Boolean> modified, boolean defaultValue) {
         if (defaultValue) {
+            // 如果默认值为 true，那么只要有一个 false 就返回 false
             return modified.stream().allMatch(s -> s);
         } else {
+            // 如果默认值为 false，那么只要有一个 true 就返回 true
             return modified.stream().anyMatch(s -> s);
         }
     }
@@ -104,7 +110,7 @@ public class AttachmentPropertyManager {
         try {
             LUAJ_ENGINE.eval(script);
         } catch (ScriptException e) {
-            GunModFabric.LOGGER.error("Erro no script Lua: {}", e.getMessage());
+            GunMod.LOGGER.catching(e);
         }
         if (LUAJ_ENGINE.get("y") instanceof Number number) {
             return number.doubleValue();

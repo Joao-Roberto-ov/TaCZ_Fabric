@@ -1,46 +1,44 @@
 package com.tacz.guns.api.item;
 
-import com.tacz.guns.api.DefaultAssets;
-import com.tacz.guns.api.TimelessAPI; // Verificaremos essa classe em breve
-import com.tacz.guns.init.ModDataComponents;
-import com.tacz.guns.resource.index.CommonGunIndex;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
 
 public interface IAmmo {
     /**
-     * Obtém o ID da munição. Reutilizamos o componente ATTACHMENT_ID ou criamos um AMMO_ID?
-     * O ideal é criar um AMMO_ID no ModDataComponents para clareza, mas por enquanto vamos
-     * assumir que você adicionará AMMO_ID lá ou usará GUN_ID se for genérico.
-     * Vamos adicionar AMMO_ID ao ModDataComponents no próximo passo para ser correto.
+     * @return 如果物品类型为 IAttachment 则返回显式转换后的实例，否则返回 null。
      */
-    @NotNull
-    default ResourceLocation getAmmoId(ItemStack stack) {
-        // Você precisará adicionar AMMO_ID em ModDataComponents!
-        return stack.getOrDefault(ModDataComponents.AMMO_ID, DefaultAssets.EMPTY_AMMO_ID);
-    }
-
-    default void setAmmoId(ItemStack stack, @Nullable ResourceLocation id) {
-        if (id != null) {
-            stack.set(ModDataComponents.AMMO_ID, id);
-        } else {
-            stack.set(ModDataComponents.AMMO_ID, DefaultAssets.DEFAULT_AMMO_ID);
+    @Nullable
+    static IAmmo getIAmmoOrNull(@Nullable ItemStack stack) {
+        if (stack == null) {
+            return null;
         }
-    }
-
-    default boolean isAmmoOfGun(ItemStack gun, ItemStack ammo) {
-        if (gun.getItem() instanceof IGun iGun && ammo.getItem() instanceof IAmmo iAmmo) {
-            ResourceLocation gunId = iGun.getGunId(gun);
-            ResourceLocation ammoId = iAmmo.getAmmoId(ammo);
-
-            // Lógica simplificada para evitar erro de compilação se TimelessAPI não estiver pronta
-            // O original usava TimelessAPI.getCommonGunIndex
-            return true; // Placeholder até migrarmos o TimelessAPI
+        if (stack.getItem() instanceof IAmmo iAmmo) {
+            return iAmmo;
         }
-        return false;
+        return null;
     }
+
+    /**
+     * 获取弹药 ID
+     *
+     * @param ammo 输入物品
+     * @return 弹药 ID
+     */
+    ResourceLocation getAmmoId(ItemStack ammo);
+
+    /**
+     * 设置弹药 ID
+     */
+    void setAmmoId(ItemStack ammo, @Nullable ResourceLocation ammoId);
+
+    /**
+     * 弹药是否属于这把枪
+     *
+     * @param gun  检查的枪械物品
+     * @param ammo 检查的子弹物品
+     * @return 是否属于这把枪
+     */
+    boolean isAmmoOfGun(ItemStack gun, ItemStack ammo);
 }

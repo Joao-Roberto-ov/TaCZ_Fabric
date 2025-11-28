@@ -1,13 +1,11 @@
 package com.tacz.guns.client.resource;
 
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.api.client.animation.AnimationController;
 import com.tacz.guns.api.client.animation.Animations;
 import com.tacz.guns.api.client.animation.ObjectAnimation;
@@ -21,384 +19,409 @@ import com.tacz.guns.client.model.BedrockGunModel;
 import com.tacz.guns.client.resource.pojo.animation.bedrock.BedrockAnimationFile;
 import com.tacz.guns.client.resource.pojo.display.LaserConfig;
 import com.tacz.guns.client.resource.pojo.display.ammo.AmmoParticle;
-// Imports corrigidos de 'ammo' para 'gun'
-import com.tacz.guns.client.resource.pojo.display.gun.MuzzleFlash;
-import com.tacz.guns.client.resource.pojo.display.gun.ShellEjection;
 import com.tacz.guns.client.resource.pojo.display.gun.*;
-// Imports adicionados
-import com.tacz.guns.client.resource.pojo.TransformScale;
-import org.luaj.vm2.LuaTable;
-import com.tacz.guns.client.resource.pojo.display.gun.GunDisplay;
-
 import com.tacz.guns.client.resource.pojo.model.BedrockModelPOJO;
 import com.tacz.guns.client.resource.pojo.model.BedrockVersion;
-import com.tacz.guns.client.resource.pojo.model.GeometryModelLegacy;
-import com.tacz.guns.client.resource.pojo.model.GeometryModelNew;
-import com.tacz.guns.client.sound.SoundPlayManager;
 import com.tacz.guns.sound.SoundManager;
+import com.tacz.guns.util.ColorHex;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.commands.arguments.ParticleArgument;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
+import org.luaj.vm2.LuaTable;
+import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiFunction;
 
-@Environment(EnvType.CLIENT)
+/**
+ * 经过处理和校验的枪械显示数据
+ */
+@OnlyIn(Dist.CLIENT)
 public class GunDisplayInstance {
-    private static final Map<String, ResourceLocation> CACHE = Maps.newHashMap();
-    private @Nullable ResourceLocation modelTexture;
-    private @Nullable ResourceLocation hudTexture;
-    private @Nullable ResourceLocation hudEmptyTexture;
-    private @Nullable ResourceLocation slotTexture;
-    private @Nullable String thirdPersonAnimation = "rifle_default";
-    private @Nullable BedrockGunModel gunModel;
-    private @Nullable AnimationStructure gltfAnimation;
-    private @Nullable BedrockAnimationFile bedrockAnimation;
-    private @Nullable LuaAnimationStateMachine animationStateMachine;
-    private @Nullable ShellEjection shellEjection;
-    private @Nullable AmmoParticle particle;
-    private @Nullable MuzzleFlash muzzleFlash;
-    private @Nullable Map<String, ResourceLocation> soundMaps;
-    private @Nullable TransformScale transformScale;
-    private @Nullable GunTransform transform;
-    private @Nullable LayerGunShow offhandShow;
-    private @Nullable Int2ObjectArrayMap<LayerGunShow> hotbarShow;
-    private float ironZoom = 1.2f;
-    private float zoomModelFov = 70f;
-    private boolean showCrosshair = false;
-    private @Nullable ResourceLocation playerAnimator3rd = ResourceLocation.fromNamespaceAndPath(GunModFabric.MOD_ID, "rifle_default.player_animation");
+    private String thirdPersonAnimation = "empty";
+    private BedrockGunModel gunModel;
+    private @Nullable Pair<BedrockGunModel, ResourceLocation> lodModel;
+    private LuaAnimationStateMachine<GunAnimationStateContext> animationStateMachine;
+    private @Nullable LuaTable stateMachineParam;
+    private @Nullable ResourceLocation playerAnimator3rd = new ResourceLocation(GunMod.MOD_ID, "rifle_default.player_animation");
     private boolean is3rdFixedHand = false;
-    private final EnumMap<FireMode, ControllableData> controllableData = new EnumMap<>(FireMode.class);
-    private AmmoCountStyle ammoCountStyle = AmmoCountStyle.PERCENT;
-    private DamageStyle damageStyle = DamageStyle.BASE_OVAL;
+    private Map<String, ResourceLocation> sounds;
+    private GunTransform transform;
+    private ResourceLocation modelTexture;
+    private ResourceLocation slotTexture;
+    private ResourceLocation hudTexture;
+    private @Nullable ResourceLocation hudEmptyTexture;
+    private @Nullable ShellEjection shellEjection;
+    private @Nullable MuzzleFlash muzzleFlash;
+    private LayerGunShow offhandShow;
+    private @Nullable Int2ObjectArrayMap<LayerGunShow> hotbarShow;
+    private float ironZoom;
+    private float zoomModelFov;
+    private boolean showCrosshair = false;
+    private @Nullable AmmoParticle particle;
+    private float @Nullable [] tracerColor = null;
+    private EnumMap<FireMode, ControllableData> controllableData;
+    private AmmoCountStyle ammoCountStyle = AmmoCountStyle.NORMAL;
+    private DamageStyle damageStyle = DamageStyle.PER_PROJECTILE;
     private @Nullable LaserConfig laserConfig;
-    private @Nullable TextShow textShow;
-    private float @Nullable [] tracerColor;
-    private @Nullable LuaTable stateMachineParam = null;
 
-    private GunDisplayInstance() {
+    GunDisplayInstance(GunDisplay display) {
+        checkTextureAndModel(display);
+        checkLod(display);
+        checkSlotTexture(display);
+        checkHUDTexture(display);
+        checkAnimation(display);
+        checkSounds(display);
+        checkTransform(display);
+        checkShellEjection(display);
+        checkGunAmmo(display);
+        checkMuzzleFlash(display);
+        checkLayerGunShow(display);
+        checkIronZoom(display);
+        checkTextShow(display);
+        checkZoomModelFov(display);
+        showCrosshair = display.isShowCrosshair();
+        controllableData = display.getControllableData();
+        ammoCountStyle = display.getAmmoCountStyle();
+        damageStyle = display.getDamageStyle();
+        laserConfig = display.getLaserConfig();
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    public static @Nullable GunDisplayInstance create(@Nullable GunDisplay gunDisplayPojo) {
-        if (gunDisplayPojo == null) {
-            return null;
+    public static GunDisplayInstance create(GunDisplay display)  throws IllegalArgumentException {
+        return new GunDisplayInstance(display);
+    }
+
+    private void checkIronZoom(GunDisplay display) {
+        ironZoom = display.getIronZoom();
+        if (ironZoom < 1) {
+            ironZoom = 1;
         }
-        GunDisplayInstance gunDisplay = new GunDisplayInstance();
-        checkTexture(gunDisplayPojo, gunDisplay);
-        checkModel(gunDisplayPojo, gunDisplay);
-        checkAnimation(gunDisplayPojo, gunDisplay);
-        checkSounds(gunDisplayPojo, gunDisplay);
-        checkTransform(gunDisplayPojo, gunDisplay);
-        checkShellEjection(gunDisplayPojo, gunDisplay);
-        checkGunFlash(gunDisplayPojo, gunDisplay);
-        checkOffhandShow(gunDisplayPojo, gunDisplay);
-        checkHotbarShow(gunDisplayPojo, gunDisplay);
-        checkZoom(gunDisplayPojo, gunDisplay);
-        checkParticle(gunDisplayPojo, gunDisplay);
-        checkPlayerAnimator3rd(gunDisplayPojo, gunDisplay);
-        checkControllableData(gunDisplayPojo, gunDisplay);
-        checkHud(gunDisplayPojo, gunDisplay);
-        checkLaser(gunDisplayPojo, gunDisplay);
-        checkTextShow(gunDisplayPojo, gunDisplay);
-        checkTracerColor(gunDisplayPojo, gunDisplay);
-        checkStateMachineParam(gunDisplayPojo, gunDisplay);
-        return gunDisplay;
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkStateMachineParam(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        // Ajuste: Cast ou conversão pode ser necessária se getStateMachineParam retornar Map<String, Object> mas field for LuaTable
-        // Por enquanto, assumindo que a lógica interna lida com isso ou que o tipo será compatível após ajustes futuros.
-        // Como o erro original era "cannot find symbol class GunDisplayPojo", focamos nisso.
-        // Se getStateMachineParam() retornar Map, você precisará converter para LuaTable aqui.
-        // Vou deixar comentado a atribuição direta se houver incompatibilidade de tipos,
-        // mas o foco é corrigir a classe POJO inexistente.
-        /*
-        if (gunDisplayPojo.getStateMachineParam() != null) {
-            gunDisplay.stateMachineParam = gunDisplayPojo.getStateMachineParam();
+    private void checkZoomModelFov(GunDisplay display) {
+        zoomModelFov = display.getZoomModelFov();
+        if (zoomModelFov > 70) {
+            zoomModelFov = 70;
         }
-        */
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkTracerColor(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        if (gunDisplayPojo.getTracerColor() != null) {
-            try {
-                String colorHex = gunDisplayPojo.getTracerColor();
-                if (colorHex.startsWith("#")) {
-                    colorHex = colorHex.substring(1);
-                }
-                int i = Integer.parseInt(colorHex, 16);
-                float r = (float) (i >> 16 & 255) / 255.0F;
-                float g = (float) (i >> 8 & 255) / 255.0F;
-                float b = (float) (i & 255) / 255.0F;
-                gunDisplay.tracerColor = new float[]{r, g, b};
-            } catch (Exception e) {
-                e.printStackTrace();
+    private void checkTextShow(GunDisplay display) {
+        Map<String, TextShow> textShowMap = Maps.newHashMap();
+        display.getTextShows().forEach((key, value) -> {
+            if (StringUtils.isNoneBlank(key)) {
+                int color = ColorHex.colorTextToRbgInt(value.getColorText());
+                value.setColorInt(color);
+                textShowMap.put(key, value);
+            }
+        });
+        gunModel.setTextShowList(textShowMap);
+    }
+
+    private void checkTextureAndModel(GunDisplay display) {
+        //获取模型类型
+        String modelType = display.getModelType();
+        BiFunction<BedrockModelPOJO, BedrockVersion, ? extends BedrockGunModel> constructor = GunModelTypeManager.getModelInstanceConstructor(modelType);
+        // 检查模型
+        ResourceLocation modelLocation = display.getModelLocation();
+        Preconditions.checkArgument(modelLocation != null, "display object missing model field");
+        BedrockModelPOJO modelPOJO = ClientAssetsManager.INSTANCE.getBedrockModelPOJO(modelLocation);
+        Preconditions.checkArgument(modelPOJO != null, "there is no corresponding model file");
+        // 检查默认材质是否存在
+        ResourceLocation textureLocation = display.getModelTexture();
+        Preconditions.checkArgument(textureLocation != null, "missing default texture");
+        modelTexture = textureLocation;
+        // 先判断是不是 1.10.0 版本基岩版模型文件
+        if (BedrockVersion.isLegacyVersion(modelPOJO) && modelPOJO.getGeometryModelLegacy() != null) {
+            gunModel = constructor.apply(modelPOJO, BedrockVersion.LEGACY);
+        }
+        // 判定是不是 1.12.0 版本基岩版模型文件
+        if (BedrockVersion.isNewVersion(modelPOJO) && modelPOJO.getGeometryModelNew() != null) {
+            gunModel = constructor.apply(modelPOJO, BedrockVersion.NEW);
+        }
+        Preconditions.checkArgument(gunModel != null, "there is no model data in the model file");
+    }
+
+    private void checkLod(GunDisplay display) {
+        GunLod gunLod = display.getGunLod();
+        if (gunLod != null) {
+            ResourceLocation texture = gunLod.getModelTexture();
+            if (gunLod.getModelLocation() == null) {
+                return;
+            }
+            if (texture == null) {
+                return;
+            }
+            BedrockModelPOJO modelPOJO = ClientAssetsManager.INSTANCE.getBedrockModelPOJO(gunLod.getModelLocation());
+            if (modelPOJO == null) {
+                return;
+            }
+            // 先判断是不是 1.10.0 版本基岩版模型文件
+            if (BedrockVersion.isLegacyVersion(modelPOJO) && modelPOJO.getGeometryModelLegacy() != null) {
+                BedrockGunModel model = new BedrockGunModel(modelPOJO, BedrockVersion.LEGACY);
+                lodModel = Pair.of(model, texture);
+            }
+            // 判定是不是 1.12.0 版本基岩版模型文件
+            if (BedrockVersion.isNewVersion(modelPOJO) && modelPOJO.getGeometryModelNew() != null) {
+                BedrockGunModel model = new BedrockGunModel(modelPOJO, BedrockVersion.NEW);
+                lodModel = Pair.of(model, texture);
             }
         }
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkTextShow(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        if (gunDisplayPojo.getTextShow() != null) {
-            gunDisplay.textShow = gunDisplayPojo.getTextShow();
+    private void checkAnimation(GunDisplay display) {
+        ResourceLocation location = display.getAnimationLocation();
+        AnimationController controller;
+        if (location == null) {
+            controller = new AnimationController(Lists.newArrayList(), gunModel);
+        } else {
+            AnimationStructure gltfAnimations = ClientAssetsManager.INSTANCE.getGltfAnimation(location);
+            BedrockAnimationFile bedrockAnimationFile = ClientAssetsManager.INSTANCE.getBedrockAnimations(location);
+            if (bedrockAnimationFile != null) {
+                // 用 bedrock 动画资源创建动画控制器
+                controller = Animations.createControllerFromBedrock(bedrockAnimationFile, gunModel);
+            } else if (gltfAnimations != null) {
+                // 用 gltf 动画资源创建动画控制器
+                controller = Animations.createControllerFromGltf(gltfAnimations, gunModel);
+            } else {
+                throw new IllegalArgumentException("animation not found: " + location);
+            }
+            // 将默认动画填入动画控制器
+            ResourceLocation defaultAnimation = display.getDefaultAnimation();
+            if (defaultAnimation != null) {
+                BedrockAnimationFile animationFile = ClientAssetsManager.INSTANCE.getBedrockAnimations(defaultAnimation);
+                if (animationFile == null) {
+                    throw new IllegalArgumentException("animation not found: " + defaultAnimation);
+                }
+                List<ObjectAnimation> animations = Animations.createAnimationFromBedrock(animationFile);
+                for (ObjectAnimation animation : animations) {
+                    controller.providePrototypeIfAbsent(animation.name, () -> new ObjectAnimation(animation));
+                }
+            } else {
+                DefaultAnimationType defaultAnimationType = display.getDefaultAnimationType();
+                if (defaultAnimationType != null) {
+                    switch (defaultAnimationType) {
+                        case RIFLE -> {
+                            for (ObjectAnimation animation : InternalAssetLoader.getDefaultRifleAnimations()) {
+                                controller.providePrototypeIfAbsent(animation.name, () -> new ObjectAnimation(animation));
+                            }
+                        }
+                        case PISTOL -> {
+                            for (ObjectAnimation animation : InternalAssetLoader.getDefaultPistolAnimations()) {
+                                controller.providePrototypeIfAbsent(animation.name, () -> new ObjectAnimation(animation));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // 初始化动画状态机，将动画控制器封装进去。
+        ResourceLocation stateMachineLocation = display.getStateMachineLocation();
+        if (stateMachineLocation == null) {
+            // 如果没指定状态机，则使用默认状态机
+            stateMachineLocation = new ResourceLocation("tacz", "default_state_machine");
+        }
+        LuaTable script = ClientAssetsManager.INSTANCE.getScript(stateMachineLocation);
+        if (script != null) {
+            animationStateMachine = new LuaStateMachineFactory<GunAnimationStateContext>()
+                    .setController(controller)
+                    .setLuaScripts(script)
+                    .build();
+        } else {
+            throw new IllegalArgumentException("statemachine not found: " + stateMachineLocation);
+        }
+        // 加载状态机参数
+        Map<String, Object> params = display.getStateMachineParam();
+        if (params != null) {
+            stateMachineParam = new LuaTable();
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                stateMachineParam.set(entry.getKey(), CoerceJavaToLua.coerce(entry.getValue()));
+            }
+        }
+        // 初始化第三人称动画
+        if (StringUtils.isNoneBlank(display.getThirdPersonAnimation())) {
+            thirdPersonAnimation = display.getThirdPersonAnimation();
+        }
+        // player animator 兼容动画
+        if (display.getPlayerAnimator3rd() != null) {
+            playerAnimator3rd = display.getPlayerAnimator3rd();
+            is3rdFixedHand = display.is3rdFixedHand();
         }
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkLaser(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        if (gunDisplayPojo.getLaserConfig() != null) {
-            gunDisplay.laserConfig = gunDisplayPojo.getLaserConfig();
+    private void checkSounds(GunDisplay display) {
+        sounds = Maps.newHashMap();
+        Map<String, ResourceLocation> soundMaps = display.getSounds();
+        if (soundMaps == null || soundMaps.isEmpty()) {
+            return;
+        }
+        // 部分音效为默认音效，不存在则需要添加默认音效
+        soundMaps.putIfAbsent(SoundManager.DRY_FIRE_SOUND, new ResourceLocation(GunMod.MOD_ID, SoundManager.DRY_FIRE_SOUND));
+        soundMaps.putIfAbsent(SoundManager.FIRE_SELECT, new ResourceLocation(GunMod.MOD_ID, SoundManager.FIRE_SELECT));
+        soundMaps.putIfAbsent(SoundManager.HEAD_HIT_SOUND, new ResourceLocation(GunMod.MOD_ID, SoundManager.HEAD_HIT_SOUND));
+        soundMaps.putIfAbsent(SoundManager.FLESH_HIT_SOUND, new ResourceLocation(GunMod.MOD_ID, SoundManager.FLESH_HIT_SOUND));
+        soundMaps.putIfAbsent(SoundManager.KILL_SOUND, new ResourceLocation(GunMod.MOD_ID, SoundManager.KILL_SOUND));
+        soundMaps.putIfAbsent(SoundManager.MELEE_BAYONET, new ResourceLocation(GunMod.MOD_ID, "melee_bayonet/melee_bayonet_01"));
+        soundMaps.putIfAbsent(SoundManager.MELEE_STOCK, new ResourceLocation(GunMod.MOD_ID, "melee_stock/melee_stock_01"));
+        soundMaps.putIfAbsent(SoundManager.MELEE_PUSH, new ResourceLocation(GunMod.MOD_ID, "melee_stock/melee_stock_02"));
+        sounds.putAll(soundMaps);
+    }
+
+    private void checkTransform(GunDisplay display) {
+        GunTransform readTransform = display.getTransform();
+        if (readTransform == null || readTransform.getScale() == null) {
+            transform = GunTransform.getDefault();
+        } else {
+            transform = display.getTransform();
         }
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkHud(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        gunDisplay.showCrosshair = gunDisplayPojo.isShowCrosshair();
-        if (gunDisplayPojo.getAmmoCountStyle() != null) {
-            gunDisplay.ammoCountStyle = gunDisplayPojo.getAmmoCountStyle();
-        }
-        if (gunDisplayPojo.getDamageStyle() != null) {
-            gunDisplay.damageStyle = gunDisplayPojo.getDamageStyle();
-        }
+    private void checkSlotTexture(GunDisplay display) {
+        // 加载 GUI 内枪械图标
+        slotTexture = Objects.requireNonNullElseGet(display.getSlotTextureLocation(), MissingTextureAtlasSprite::getLocation);
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkControllableData(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        Map<FireMode, ControllableData> data = gunDisplayPojo.getControllableData();
-        if (data != null) {
-            gunDisplay.controllableData.putAll(data);
-        }
+    private void checkHUDTexture(GunDisplay display) {
+        hudTexture = Objects.requireNonNullElseGet(display.getHudTextureLocation(), MissingTextureAtlasSprite::getLocation);
+        hudEmptyTexture = display.getHudEmptyTextureLocation();
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkPlayerAnimator3rd(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        if (gunDisplayPojo.getPlayerAnimator3rd() != null) {
-            // getPlayerAnimator3rd já retorna ResourceLocation em GunDisplay, não precisa de parse se já for RL
-            // Se for String no POJO original (que não temos), use parse.
-            // Em GunDisplay.java atual é ResourceLocation, então basta atribuição direta ou toString se necessario.
-            // Vou manter a lógica segura:
-            gunDisplay.playerAnimator3rd = gunDisplayPojo.getPlayerAnimator3rd();
-        }
-        gunDisplay.is3rdFixedHand = gunDisplayPojo.is3rdFixedHand();
+    private void checkShellEjection(GunDisplay display) {
+        shellEjection = display.getShellEjection();
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkParticle(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        AmmoParticle particle = gunDisplayPojo.getParticle();
+    private void checkGunAmmo(GunDisplay display) {
+        GunAmmo displayGunAmmo = display.getGunAmmo();
+        if (displayGunAmmo == null) {
+            return;
+        }
+        String tracerColorText = displayGunAmmo.getTracerColor();
+        if (StringUtils.isNoneBlank(tracerColorText)) {
+            tracerColor = ColorHex.colorTextToRbgFloatArray(tracerColorText);
+        }
+        AmmoParticle particle = displayGunAmmo.getParticle();
         if (particle != null) {
             try {
                 String name = particle.getName();
-                if (StringUtils.isNoneBlank(name)) {
-                    // Linha comentada para evitar erro de compilação no Fabric 1.21 temporariamente
-                    // particle.setParticleOptions(ParticleArgument.readParticle(new StringReader(name), BuiltInRegistries.PARTICLE_TYPE.asLookup()));
-                    gunDisplay.particle = particle;
+                if (StringUtils.isNoneBlank()) {
+                    particle.setParticleOptions(ParticleArgument.readParticle(new StringReader(name), BuiltInRegistries.PARTICLE_TYPE.asLookup()));
+                    Preconditions.checkArgument(particle.getCount() > 0, "particle count must be greater than 0");
+                    Preconditions.checkArgument(particle.getLifeTime() > 0, "particle life time must be greater than 0");
+                    this.particle = particle;
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (CommandSyntaxException e) {
+                e.fillInStackTrace();
             }
         }
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkZoom(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        if (gunDisplayPojo.getIronZoom() > 0) {
-            gunDisplay.ironZoom = gunDisplayPojo.getIronZoom();
-        }
-        if (gunDisplayPojo.getZoomModelFov() > 0) {
-            gunDisplay.zoomModelFov = gunDisplayPojo.getZoomModelFov();
+    private void checkMuzzleFlash(GunDisplay display) {
+        muzzleFlash = display.getMuzzleFlash();
+        if (muzzleFlash != null && muzzleFlash.getTexture() == null) {
+            muzzleFlash = null;
         }
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkHotbarShow(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        // GunDisplay retorna Map<String, LayerGunShow>, mas aqui espera Int2ObjectArrayMap<LayerGunShow>
-        // Pode ser necessário conversão ou ajuste. Vou manter como está assumindo compatibilidade ou ajuste posterior,
-        // mas corrigindo o nome da classe de entrada.
-        // O erro original era sobre GunDisplayPojo.
-        Map<String, LayerGunShow> show = gunDisplayPojo.getHotbarShow();
-        if (show != null) {
-            // Conversão simplificada se necessário, ou cast direto se for o mesmo tipo base
-            // gunDisplay.hotbarShow = show;
+    private void checkLayerGunShow(GunDisplay display) {
+        offhandShow = display.getOffhandShow();
+        if (offhandShow == null) {
+            offhandShow = new LayerGunShow();
         }
-    }
-
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkOffhandShow(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        LayerGunShow show = gunDisplayPojo.getOffhandShow();
-        if (show != null) {
-            gunDisplay.offhandShow = show;
+        Map<String, LayerGunShow> show = display.getHotbarShow();
+        if (show == null || show.isEmpty()) {
+            return;
         }
-    }
-
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkGunFlash(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        MuzzleFlash flash = gunDisplayPojo.getMuzzleFlash();
-        if (flash != null) {
-            gunDisplay.muzzleFlash = flash;
-        }
-    }
-
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkShellEjection(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        ShellEjection shellEjection = gunDisplayPojo.getShellEjection();
-        if (shellEjection != null) {
-            gunDisplay.shellEjection = shellEjection;
-        }
-    }
-
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkTransform(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        TransformScale scale = gunDisplayPojo.getTransformScale();
-        if (scale != null) {
-            gunDisplay.transformScale = scale;
-        }
-        GunTransform transform = gunDisplayPojo.getTransform();
-        if (transform != null) {
-            gunDisplay.transform = transform;
-        }
-    }
-
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkSounds(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        Map<String, ResourceLocation> soundMaps = gunDisplayPojo.getSounds();
-        if (soundMaps == null) {
-            soundMaps = Maps.newHashMap();
-        }
-        gunDisplay.soundMaps = soundMaps;
-    }
-
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkAnimation(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        // GunDisplay usa getAnimationLocation() ao invés de getAnimation()
-        ResourceLocation animationLocation = gunDisplayPojo.getAnimationLocation();
-        if (animationLocation != null) {
-            gunDisplay.gltfAnimation = ClientAssetsManager.INSTANCE.getGltfAnimation(animationLocation);
-            gunDisplay.bedrockAnimation = ClientAssetsManager.INSTANCE.getBedrockAnimation(animationLocation);
-        }
-        if (gunDisplayPojo.getThirdPersonAnimation() != null) {
-            gunDisplay.thirdPersonAnimation = gunDisplayPojo.getThirdPersonAnimation();
-        }
-
-        // GunDisplay usa getStateMachineLocation() ao invés de getStateMachine()
-        ResourceLocation stateMachineLocation = gunDisplayPojo.getStateMachineLocation();
-        if (stateMachineLocation == null) {
-            stateMachineLocation = ResourceLocation.fromNamespaceAndPath("tacz", "default_state_machine");
-        }
-        if (gunDisplay.bedrockAnimation != null && gunDisplay.gunModel != null) {
-            gunDisplay.animationStateMachine = LuaStateMachineFactory.create(stateMachineLocation);
-        }
-    }
-
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkModel(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        // GunDisplay usa getModelLocation() ao invés de getModel()
-        ResourceLocation modelLocation = gunDisplayPojo.getModelLocation();
-        if (modelLocation != null) {
-            BedrockModelPOJO modelPOJO = ClientAssetsManager.INSTANCE.getBedrockModelPOJO(modelLocation);
-            if (modelPOJO != null) {
-                if (BedrockVersion.isLegacyVersion(modelPOJO) && modelPOJO.getGeometryModelLegacy() != null) {
-                    GeometryModelLegacy geometryModelLegacy = modelPOJO.getGeometryModelLegacy();
-                    gunDisplay.gunModel = new BedrockGunModel(modelPOJO, BedrockVersion.LEGACY);
-                }
-                if (BedrockVersion.isNewVersion(modelPOJO) && modelPOJO.getGeometryModelNew() != null) {
-                    GeometryModelNew geometryModelNew = modelPOJO.getGeometryModelNew();
-                    gunDisplay.gunModel = new BedrockGunModel(modelPOJO, BedrockVersion.NEW);
-                }
+        hotbarShow = new Int2ObjectArrayMap<>();
+        for (String key : show.keySet()) {
+            try {
+                hotbarShow.put(Integer.parseInt(key), show.get(key));
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("index number is error: " + key);
             }
         }
     }
 
-    // Alterado GunDisplayPojo para GunDisplay
-    private static void checkTexture(GunDisplay gunDisplayPojo, GunDisplayInstance gunDisplay) {
-        gunDisplay.modelTexture = gunDisplayPojo.getModelTexture();
-        // GunDisplay usa nomes com 'Location' no final
-        gunDisplay.hudTexture = gunDisplayPojo.getHudTextureLocation();
-        gunDisplay.slotTexture = gunDisplayPojo.getSlotTextureLocation();
-        gunDisplay.hudEmptyTexture = gunDisplayPojo.getHudEmptyTextureLocation();
-    }
-
-    public @Nullable ResourceLocation getModelTexture() {
-        return modelTexture;
-    }
-
-    public @Nullable ResourceLocation getHudTexture() {
-        return hudTexture;
-    }
-
-    public @Nullable ResourceLocation getHudEmptyTexture() {
-        return hudEmptyTexture;
-    }
-
-    public @Nullable ResourceLocation getSlotTexture() {
-        return slotTexture;
-    }
-
-    public @Nullable String getThirdPersonAnimation() {
-        return thirdPersonAnimation;
-    }
-
-    public @Nullable BedrockGunModel getGunModel() {
+    public BedrockGunModel getGunModel() {
         return gunModel;
     }
 
-    public @Nullable AnimationStructure getGltfAnimation() {
-        return gltfAnimation;
+    @Nullable
+    public Pair<BedrockGunModel, ResourceLocation> getLodModel() {
+        return lodModel;
     }
 
-    public @Nullable BedrockAnimationFile getBedrockAnimation() {
-        return bedrockAnimation;
-    }
-
-    public @Nullable LuaAnimationStateMachine getAnimationStateMachine() {
+    public LuaAnimationStateMachine<GunAnimationStateContext> getAnimationStateMachine() {
         return animationStateMachine;
     }
 
-    public @Nullable ShellEjection getShellEjection() {
-        return shellEjection;
+    public @Nullable LuaTable getStateMachineParam() {
+        return stateMachineParam;
     }
 
-    public @Nullable AmmoParticle getParticle() {
-        return particle;
+    @Nullable
+    public ResourceLocation getSounds(String name) {
+        return sounds.get(name);
     }
 
-    public @Nullable MuzzleFlash getMuzzleFlash() {
-        return muzzleFlash;
-    }
-
-    public @Nullable Map<String, ResourceLocation> getSoundMaps() {
-        return soundMaps;
-    }
-
-    public void addSoundMaps(Map<String, ResourceLocation> map) {
-        if(this.soundMaps != null) {
-            this.soundMaps.putAll(map);
-        }
-    }
-
-    public @Nullable TransformScale getTransformScale() {
-        return transformScale;
-    }
-
-    public @Nullable GunTransform getTransform() {
+    public GunTransform getTransform() {
         return transform;
     }
 
-    public @Nullable LayerGunShow getOffhandShow() {
+    public ResourceLocation getSlotTexture() {
+        return slotTexture;
+    }
+
+    public ResourceLocation getHUDTexture() {
+        return hudTexture;
+    }
+
+    @Nullable
+    public ResourceLocation getHudEmptyTexture() {
+        return hudEmptyTexture;
+    }
+
+    public ResourceLocation getModelTexture() {
+        return modelTexture;
+    }
+
+    public String getThirdPersonAnimation() {
+        return thirdPersonAnimation;
+    }
+
+    @Nullable
+    public ShellEjection getShellEjection() {
+        return shellEjection;
+    }
+
+    public float @Nullable [] getTracerColor() {
+        return tracerColor;
+    }
+
+    @Nullable
+    public AmmoParticle getParticle() {
+        return particle;
+    }
+
+    @Nullable
+    public MuzzleFlash getMuzzleFlash() {
+        return muzzleFlash;
+    }
+
+    public LayerGunShow getOffhandShow() {
         return offhandShow;
     }
 
-    public @Nullable Int2ObjectArrayMap<LayerGunShow> getHotbarShow() {
+    @Nullable
+    public Int2ObjectArrayMap<LayerGunShow> getHotbarShow() {
         return hotbarShow;
     }
 
@@ -436,42 +459,5 @@ public class GunDisplayInstance {
 
     public @Nullable LaserConfig getLaserConfig() {
         return laserConfig;
-    }
-
-    public @Nullable TextShow getTextShow() {
-        return textShow;
-    }
-
-    public float @Nullable [] getTracerColor() {
-        return tracerColor;
-    }
-
-    public @Nullable LuaTable getStateMachineParam() {
-        return stateMachineParam;
-    }
-
-    public ResourceLocation getSounds(String name) {
-        if (soundMaps == null) {
-            return null;
-        }
-        return soundMaps.get(name);
-    }
-
-    public void setKerning() {
-        // Implementation for setting kerning if needed, currently empty placeholder
-    }
-
-    public void setTexture() {
-        if (soundMaps == null) {
-            soundMaps = Maps.newHashMap();
-        }
-        soundMaps.putIfAbsent(SoundManager.DRY_FIRE_SOUND, ResourceLocation.fromNamespaceAndPath(GunModFabric.MOD_ID, SoundManager.DRY_FIRE_SOUND));
-        soundMaps.putIfAbsent(SoundManager.FIRE_SELECT, ResourceLocation.fromNamespaceAndPath(GunModFabric.MOD_ID, SoundManager.FIRE_SELECT));
-        soundMaps.putIfAbsent(SoundManager.HEAD_HIT_SOUND, ResourceLocation.fromNamespaceAndPath(GunModFabric.MOD_ID, SoundManager.HEAD_HIT_SOUND));
-        soundMaps.putIfAbsent(SoundManager.FLESH_HIT_SOUND, ResourceLocation.fromNamespaceAndPath(GunModFabric.MOD_ID, SoundManager.FLESH_HIT_SOUND));
-        soundMaps.putIfAbsent(SoundManager.KILL_SOUND, ResourceLocation.fromNamespaceAndPath(GunModFabric.MOD_ID, SoundManager.KILL_SOUND));
-        soundMaps.putIfAbsent(SoundManager.MELEE_BAYONET, ResourceLocation.fromNamespaceAndPath(GunModFabric.MOD_ID, "melee_bayonet/melee_bayonet_01"));
-        soundMaps.putIfAbsent(SoundManager.MELEE_STOCK, ResourceLocation.fromNamespaceAndPath(GunModFabric.MOD_ID, "melee_stock/melee_stock_01"));
-        soundMaps.putIfAbsent(SoundManager.MELEE_PUSH, ResourceLocation.fromNamespaceAndPath(GunModFabric.MOD_ID, "melee_stock/melee_stock_02"));
     }
 }

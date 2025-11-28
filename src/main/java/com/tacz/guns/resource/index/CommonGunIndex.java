@@ -1,25 +1,24 @@
 package com.tacz.guns.resource.index;
 
 import com.google.common.base.Preconditions;
-import com.tacz.guns.GunModFabric; // Ajustado para a classe principal do Fabric
+import com.tacz.guns.GunMod;
 import com.tacz.guns.api.item.gun.FireMode;
-// import com.tacz.guns.resource.manager.CommonDataManager; // Removido pois não existe mais
+import com.tacz.guns.resource.CommonAssetsManager;
 import com.tacz.guns.resource.pojo.GunIndexPOJO;
 import com.tacz.guns.resource.pojo.data.gun.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.apache.commons.lang3.StringUtils;
-// import org.apache.logging.log4j.Marker; // Markers não são usados no SLF4J do Fabric padrão
-// import org.apache.logging.log4j.MarkerManager;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 import org.luaj.vm2.LuaTable;
-// import org.luaj.vm2.lib.jse.CoerceJavaToLua; // Comentado temporariamente
-import com.tacz.guns.resource.manager.CommonDataManager;
+import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 import java.util.Arrays;
 import java.util.Map;
 
 public class CommonGunIndex {
-    // private static final Marker MARKER = MarkerManager.getMarker("CommonGunIndex");
+    private static final Marker MARKER = MarkerManager.getMarker("CommonGunIndex");
     private GunData gunData;
     private String type;
     private GunIndexPOJO pojo;
@@ -48,11 +47,8 @@ public class CommonGunIndex {
     private static void checkData(GunIndexPOJO gunIndexPOJO, CommonGunIndex index) {
         ResourceLocation pojoData = gunIndexPOJO.getData();
         Preconditions.checkArgument(pojoData != null, "index object missing pojoData field");
-
-        // Modificado para usar CommonDataManager estático
-        GunData data = CommonDataManager.getGunData(pojoData);
-
-        Preconditions.checkArgument(data != null, "there is no corresponding data file for: " + pojoData);
+        GunData data = CommonAssetsManager.get().getGunData(pojoData);
+        Preconditions.checkArgument(data != null, "there is no corresponding data file");
         Preconditions.checkArgument(data.getAmmoId() != null, "ammo id is empty");
         Preconditions.checkArgument(data.getAmmoAmount() >= 1, "ammo count must >= 1");
         int[] extendedMagAmmoAmount = data.getExtendedMagAmmoAmount();
@@ -62,11 +58,9 @@ public class CommonGunIndex {
         Preconditions.checkArgument(data.getReloadData().getType() != null, "reload type is error");
         Preconditions.checkArgument(!data.getFireModeSet().isEmpty(), "fire mode is empty");
         Preconditions.checkArgument(!data.getFireModeSet().contains(null) && !data.getFireModeSet().contains(FireMode.UNKNOWN), "fire mode is error");
-
         checkInaccuracy(data);
         checkRecoil(data);
         checkScript(data, index);
-
         index.gunData = data;
     }
 
@@ -106,19 +100,16 @@ public class CommonGunIndex {
     }
 
     private static void checkScript(GunData data, CommonGunIndex index) {
-        // TODO: Reativar o carregamento de scripts quando o ScriptManager/CommonAssetsManager for portado.
-        // O código original depende de 'CommonAssetsManager' que foi removido nesta etapa de refatoração.
-
-        /*
+        // 加载脚本
         ResourceLocation scriptId = data.getScript();
         CommonAssetsManager commonAssetsManager = CommonAssetsManager.getInstance();
         if (scriptId != null && commonAssetsManager != null) {
             index.script = commonAssetsManager.getScript(scriptId);
             if (index.script == null) {
-                GunModFabric.LOGGER.warn("script '{}' not found", scriptId);
+                GunMod.LOGGER.warn(MARKER, "script '{}' not found", scriptId);
             }
         }
-        // Carregar parametros do script
+        // 加载脚本参数
         Map<String, Object> params = data.getScriptParam();
         if (params != null) {
             index.scriptParam = new LuaTable();
@@ -126,7 +117,6 @@ public class CommonGunIndex {
                 index.scriptParam.set(entry.getKey(), CoerceJavaToLua.coerce(entry.getValue()));
             }
         }
-        */
     }
 
     public GunData getGunData() {

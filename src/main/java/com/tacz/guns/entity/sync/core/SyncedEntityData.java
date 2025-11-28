@@ -1,7 +1,9 @@
 package com.tacz.guns.entity.sync.core;
 
 import com.google.common.collect.ImmutableSet;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
+import com.tacz.guns.init.CommonRegistry;
+import com.tacz.guns.network.message.handshake.ServerMessageSyncedEntityDataMapping;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
@@ -79,7 +81,7 @@ public class SyncedEntityData {
         int nextId = this.nextIdTracker.getAndIncrement();
         this.internalIds.put(dataKey, nextId);
         this.syncedIdToKey.put(nextId, dataKey);
-        GunModFabric.LOGGER.info(SYNCED_ENTITY_DATA_MARKER, "Registered synced data key {} for {}", dataKey.id(), classKey.id());
+        GunMod.LOGGER.info(SYNCED_ENTITY_DATA_MARKER, "Registered synced data key {} for {}", dataKey.id(), classKey.id());
     }
 
     /**
@@ -92,7 +94,7 @@ public class SyncedEntityData {
     public <E extends Entity, T> void set(E entity, SyncedDataKey<?, ?> key, T value) {
         if (!this.registeredDataKeys.contains(key)) {
             String keys = this.registeredDataKeys.stream().map(k -> k.pairKey().toString()).collect(Collectors.joining(",", "[", "]"));
-            GunModFabric.LOGGER.info(SYNCED_ENTITY_DATA_MARKER, "Registered keys before throwing exception: {}", keys);
+            GunMod.LOGGER.info(SYNCED_ENTITY_DATA_MARKER, "Registered keys before throwing exception: {}", keys);
             throw new IllegalArgumentException(String.format("The synced data key %s for %s is not registered!", key.id(), key.classKey().id()));
         }
         DataHolder holder = this.getDataHolder(entity);
@@ -114,7 +116,7 @@ public class SyncedEntityData {
     public <E extends Entity, T> T get(E entity, SyncedDataKey<E, T> key) {
         if (!this.registeredDataKeys.contains(key)) {
             String keys = this.registeredDataKeys.stream().map(k -> k.pairKey().toString()).collect(Collectors.joining(",", "[", "]"));
-            GunModFabric.LOGGER.info(SYNCED_ENTITY_DATA_MARKER, "Registered keys before throwing exception: {}", keys);
+            GunMod.LOGGER.info(SYNCED_ENTITY_DATA_MARKER, "Registered keys before throwing exception: {}", keys);
             throw new IllegalArgumentException(String.format("The synced data key %s for %s is not registered!", key.id(), key.classKey().id()));
         }
         DataHolder holder = this.getDataHolder(entity);
@@ -199,35 +201,35 @@ public class SyncedEntityData {
         return client ? this.clientClassNameCapabilityCache : this.serverClassNameCapabilityCache;
     }
 
-//    public boolean updateMappings(ServerMessageSyncedEntityDataMapping message) {
-//        this.syncedIdToKey.clear();
-//
-//        List<Pair<ResourceLocation, ResourceLocation>> missingKeys = new ArrayList<>();
-//        message.getKeyMap().forEach((classId, list) -> {
-//            SyncedClassKey<?> classKey = this.idToClassKey.get(classId);
-//            if (classKey == null || !this.classToKeys.containsKey(classKey)) {
-//                list.forEach(pair -> missingKeys.add(Pair.of(classId, pair.getLeft())));
-//                return;
-//            }
-//
-//            Map<ResourceLocation, SyncedDataKey<?, ?>> keys = this.classToKeys.get(classKey);
-//            list.forEach(pair -> {
-//                SyncedDataKey<?, ?> syncedDataKey = keys.get(pair.getLeft());
-//                if (syncedDataKey == null) {
-//                    missingKeys.add(Pair.of(classId, pair.getLeft()));
-//                    return;
-//                }
-//                this.syncedIdToKey.put((int) pair.getRight(), syncedDataKey);
-//            });
-//        });
-//
-//        if (!missingKeys.isEmpty()) {
-//            String keys = missingKeys.stream().map(Object::toString).collect(Collectors.joining(",", "[", "]"));
-//            GunModFabric.LOGGER.info(SYNCED_ENTITY_DATA_MARKER, "Received unknown synced keys: {}", keys);
-//        }
-//
-//        return missingKeys.isEmpty();
-//    }
+    public boolean updateMappings(ServerMessageSyncedEntityDataMapping message) {
+        this.syncedIdToKey.clear();
+
+        List<Pair<ResourceLocation, ResourceLocation>> missingKeys = new ArrayList<>();
+        message.getKeyMap().forEach((classId, list) -> {
+            SyncedClassKey<?> classKey = this.idToClassKey.get(classId);
+            if (classKey == null || !this.classToKeys.containsKey(classKey)) {
+                list.forEach(pair -> missingKeys.add(Pair.of(classId, pair.getLeft())));
+                return;
+            }
+
+            Map<ResourceLocation, SyncedDataKey<?, ?>> keys = this.classToKeys.get(classKey);
+            list.forEach(pair -> {
+                SyncedDataKey<?, ?> syncedDataKey = keys.get(pair.getLeft());
+                if (syncedDataKey == null) {
+                    missingKeys.add(Pair.of(classId, pair.getLeft()));
+                    return;
+                }
+                this.syncedIdToKey.put((int) pair.getRight(), syncedDataKey);
+            });
+        });
+
+        if (!missingKeys.isEmpty()) {
+            String keys = missingKeys.stream().map(Object::toString).collect(Collectors.joining(",", "[", "]"));
+            GunMod.LOGGER.info(SYNCED_ENTITY_DATA_MARKER, "Received unknown synced keys: {}", keys);
+        }
+
+        return missingKeys.isEmpty();
+    }
 
     public boolean isDirty() {
         return dirty;

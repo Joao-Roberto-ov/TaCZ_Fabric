@@ -1,10 +1,13 @@
 package com.tacz.guns.sound;
 
+import com.tacz.guns.network.NetworkHandler;
+import com.tacz.guns.network.message.ServerMessageSound;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraftforge.network.PacketDistributor;
 
 public class SoundManager {
     /**
@@ -92,17 +95,18 @@ public class SoundManager {
      */
     public static String INSTALL_SOUND = "install";
 
-    // TODO: Reimplementar sistema de som para Fabric
-    // Removido código de rede que dependia do sistema de pacotes do Forge
+//    public static void sendSoundToNearby(LivingEntity sourceEntity, int distance, ResourceLocation gunId, String soundName, float volume, float pitch) {
+//        sendSoundToNearby(sourceEntity, distance, gunId, DefaultAssets.DEFAULT_GUN_DISPLAY_ID, soundName, volume, pitch);
+//    }
+
     public static void sendSoundToNearby(LivingEntity sourceEntity, int distance, ResourceLocation gunId, ResourceLocation gunDisplayId, String soundName, float volume, float pitch) {
         if (sourceEntity.level() instanceof ServerLevel serverLevel) {
             BlockPos pos = sourceEntity.blockPosition();
-            // ServerMessageSound soundMessage = new ServerMessageSound(sourceEntity.getId(), gunId, gunDisplayId, soundName, volume, pitch, distance);
-            // TODO: Implementar envio de som usando sistema de rede do Fabric
-            // serverLevel.getChunkSource().chunkMap.getPlayers(new ChunkPos(pos), false).stream()
-            //         .filter(p -> p.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) < distance * distance)
-            //         .filter(p -> p.getId() != sourceEntity.getId())
-            //         .forEach(p -> NetworkHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> p), soundMessage));
+            ServerMessageSound soundMessage = new ServerMessageSound(sourceEntity.getId(), gunId, gunDisplayId, soundName, volume, pitch, distance);
+            serverLevel.getChunkSource().chunkMap.getPlayers(new ChunkPos(pos), false).stream()
+                    .filter(p -> p.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) < distance * distance)
+                    .filter(p -> p.getId() != sourceEntity.getId())
+                    .forEach(p -> NetworkHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> p), soundMessage));
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.tacz.guns.resource.filter;
 
 import com.google.gson.*;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,7 +82,7 @@ public class RecipeFilter {
                         try {
                             list.add(new RegexFilter<>(entry));
                         } catch (PatternSyntaxException e) {
-                            GunModFabric.LOGGER.error("Failed to parse regex filter: {}", entry, e);
+                            GunMod.LOGGER.error("Failed to parse regex filter: {}", entry, e);
                         }
                     } else {
                         ResourceLocation rl = ResourceLocation.tryParse(entry);

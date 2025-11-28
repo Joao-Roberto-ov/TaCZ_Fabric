@@ -1,6 +1,7 @@
 package com.tacz.guns.client.tooltip;
 
 import com.tacz.guns.api.item.IAmmoBox;
+import com.tacz.guns.inventory.tooltip.AmmoBoxTooltip;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -14,8 +15,6 @@ public class ClientAmmoBoxTooltip implements ClientTooltipComponent {
     private final Component count;
     private final Component ammoName;
 
-    // Construtor original comentado - precisa de AmmoBoxTooltip do lado do servidor
-    /*
     public ClientAmmoBoxTooltip(AmmoBoxTooltip tooltip) {
         this.ammo = tooltip.getAmmo();
         ItemStack ammoBox = tooltip.getAmmoBox();
@@ -23,18 +22,6 @@ public class ClientAmmoBoxTooltip implements ClientTooltipComponent {
             this.count = Component.literal("∞");
         } else {
             this.count = Component.translatable("tooltip.tacz.ammo_box.count", tooltip.getCount());
-        }
-        this.ammoName = this.ammo.getHoverName();
-    }
-    */
-
-    // Construtor temporário para compilação
-    public ClientAmmoBoxTooltip(ItemStack ammo, ItemStack ammoBox, int ammoCount) {
-        this.ammo = ammo;
-        if (ammoBox.getItem() instanceof IAmmoBox box && box.isCreative(ammoBox)) {
-            this.count = Component.literal("∞");
-        } else {
-            this.count = Component.translatable("tooltip.tacz.ammo_box.count", ammoCount);
         }
         this.ammoName = this.ammo.getHoverName();
     }

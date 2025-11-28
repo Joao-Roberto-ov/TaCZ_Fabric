@@ -2,9 +2,9 @@ package com.tacz.guns.client.resource.manager;
 
 import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.client.resource.pojo.PackInfo;
-import com.tacz.guns.resource.manager.CommonDataManager;
+import com.tacz.guns.resource.CommonAssetsManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -35,7 +35,7 @@ public class PackInfoManager extends SimplePreparableReloadListener<Map<String, 
                         throw new IllegalStateException("Duplicate data file ignored with namespace " + namespaces);
                     }
                 } catch (IllegalArgumentException | IOException | JsonParseException jsonparseexception) {
-                    GunModFabric.LOGGER.error(MARKER, "Couldn't parse pack info for namespace '{}' from {}", namespaces, rl, jsonparseexception);
+                    GunMod.LOGGER.error(MARKER, "Couldn't parse pack info for namespace '{}' from {}", namespaces, rl, jsonparseexception);
                 }
             });
         }

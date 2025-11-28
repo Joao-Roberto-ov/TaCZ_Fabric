@@ -8,8 +8,10 @@ import com.tacz.guns.api.item.IAttachment;
 import com.tacz.guns.api.item.IGun;
 import com.tacz.guns.api.item.attachment.AttachmentType;
 import com.tacz.guns.api.item.builder.AttachmentItemBuilder;
+import com.tacz.guns.api.item.builder.GunItemBuilder;
 import com.tacz.guns.client.resource.ClientAssetsManager;
 import com.tacz.guns.client.resource.pojo.PackInfo;
+import com.tacz.guns.inventory.tooltip.AttachmentItemTooltip;
 import com.tacz.guns.resource.pojo.data.attachment.AttachmentData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
@@ -42,22 +44,10 @@ public class ClientAttachmentItemTooltip implements ClientTooltipComponent {
     private List<ItemStack> showGuns = Lists.newArrayList();
     private ItemStack attachment;
 
-    // TODO: Construtor original comentado - precisa de AttachmentItemTooltip do lado do servidor
-    /*
     public ClientAttachmentItemTooltip(AttachmentItemTooltip tooltip) {
         this.attachmentId = tooltip.getAttachmentId();
         this.attachment = tooltip.getAttachmentItem();
         this.addText(tooltip.getType());
-        this.getShowGuns();
-        this.addPackInfo();
-    }
-    */
-
-    // Construtor temporário para compilação
-    public ClientAttachmentItemTooltip(ResourceLocation attachmentId, ItemStack attachmentItem, AttachmentType type) {
-        this.attachmentId = attachmentId;
-        this.attachment = attachmentItem;
-        this.addText(type);
         this.getShowGuns();
         this.addPackInfo();
     }
@@ -73,12 +63,12 @@ public class ClientAttachmentItemTooltip implements ClientTooltipComponent {
         ItemStack attachment = AttachmentItemBuilder.create().setId(attachmentId).build();
         TimelessAPI.getAllCommonGunIndex().forEach(entry -> {
             ResourceLocation gunId = entry.getKey();
-            // TODO: Criar ItemStack da arma usando GunItemBuilder quando disponível
-            ItemStack gun = ItemStack.EMPTY; // Placeholder
-            if (gun.getItem() instanceof IGun iGun) {
-                if (iGun.allowAttachment(gun, attachment)) {
-                    output.add(gun);
-                }
+            ItemStack gun = GunItemBuilder.create().setId(gunId).build();
+            if (!(gun.getItem() instanceof IGun iGun)) {
+                return;
+            }
+            if (iGun.allowAttachment(gun, attachment)) {
+                output.add(gun);
             }
         });
         return output;

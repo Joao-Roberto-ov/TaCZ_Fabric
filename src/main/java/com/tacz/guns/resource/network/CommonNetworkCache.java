@@ -4,9 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.api.modifier.JsonProperty;
-import com.tacz.guns.resource.manager.CommonDataManager;
+import com.tacz.guns.resource.CommonAssetsManager;
 import com.tacz.guns.resource.ICommonResourceProvider;
 import com.tacz.guns.resource.filter.RecipeFilter;
 import com.tacz.guns.resource.index.CommonAmmoIndex;
@@ -208,7 +208,7 @@ public enum CommonNetworkCache implements ICommonResourceProvider {
                     case BLOCK_DATA -> blockData.put(entry.getKey(), parse(entry.getValue(), BlockData.class));
                 }
             } catch (IllegalArgumentException | JsonParseException exception) {
-                GunModFabric.LOGGER.warn("Failed to parse data from network for {} with id {}", type, entry.getKey(), exception);
+                GunMod.LOGGER.warn("Failed to parse data from network for {} with id {}", type, entry.getKey(), exception);
             }
         }
     }

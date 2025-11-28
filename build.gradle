@@ -1,0 +1,68 @@
+plugins {
+    id 'fabric-loom' version '1.11-SNAPSHOT'
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+    maven { url "https://maven.shedaniel.me/" } // Cloth Config
+    maven { url "https://maven.terraformersmc.com/releases/" } // Mod Menu
+}
+
+dependencies {
+    // Minecraft e Mappings (USANDO MOJANG OFICIAL PARA COMPATIBILIDADE)
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    implementation "org.apache.commons:commons-math3:3.6.1"
+
+    // Fabric API
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Cloth Config
+    modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+
+    // --- BIBLIOTECAS QUE FALTAVAM ---
+
+    // LuaJ (Motor de Scripts das Armas) - Corrige "package org.luaj.vm2 does not exist"
+    implementation "org.luaj:luaj-jse:3.0.1"
+    include "org.luaj:luaj-jse:3.0.1"
+
+    // JSR305 (Anotações como @Nullable) - Corrige "package javax.annotation does not exist"
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}

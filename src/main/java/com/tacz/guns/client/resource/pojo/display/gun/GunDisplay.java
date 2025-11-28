@@ -3,10 +3,8 @@ package com.tacz.guns.client.resource.pojo.display.gun;
 import com.google.common.collect.Maps;
 import com.google.gson.annotations.SerializedName;
 import com.tacz.guns.api.item.gun.FireMode;
-import com.tacz.guns.client.resource.pojo.TransformScale; // Import Adicionado
 import com.tacz.guns.client.resource.pojo.display.IDisplay;
 import com.tacz.guns.client.resource.pojo.display.LaserConfig;
-import com.tacz.guns.client.resource.pojo.display.ammo.AmmoParticle; // Import Adicionado
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,10 +72,6 @@ public class GunDisplay implements IDisplay {
     @Nullable
     @SerializedName("transform")
     private GunTransform transform;
-    // Campo Adicionado
-    @Nullable
-    @SerializedName("transform_scale")
-    private TransformScale transformScale;
     @Nullable
     @SerializedName("shell")
     private ShellEjection shellEjection;
@@ -87,10 +81,6 @@ public class GunDisplay implements IDisplay {
     @Nullable
     @SerializedName("muzzle_flash")
     private MuzzleFlash muzzleFlash;
-    // Campo Adicionado
-    @Nullable
-    @SerializedName("particle")
-    private AmmoParticle particle;
     @SerializedName("offhand_show")
     private LayerGunShow offhandShow = new LayerGunShow();
     @Nullable
@@ -104,9 +94,6 @@ public class GunDisplay implements IDisplay {
     private EnumMap<FireMode, ControllableData> controllableData = Maps.newEnumMap(FireMode.class);
     @SerializedName("laser")
     private LaserConfig laserConfig;
-    // Campo Adicionado
-    @SerializedName("tracer_color")
-    private String tracerColor;
 
     public String getModelType() {
         return modelType;
@@ -185,12 +172,6 @@ public class GunDisplay implements IDisplay {
         return transform;
     }
 
-    // Getter Adicionado
-    @Nullable
-    public TransformScale getTransformScale() {
-        return transformScale;
-    }
-
     @Nullable
     public ShellEjection getShellEjection() {
         return shellEjection;
@@ -204,12 +185,6 @@ public class GunDisplay implements IDisplay {
     @Nullable
     public MuzzleFlash getMuzzleFlash() {
         return muzzleFlash;
-    }
-
-    // Getter Adicionado
-    @Nullable
-    public AmmoParticle getParticle() {
-        return particle;
     }
 
     public LayerGunShow getOffhandShow() {
@@ -233,14 +208,6 @@ public class GunDisplay implements IDisplay {
         return textShows;
     }
 
-    // Método Adicionado para compatibilidade com GunDisplayInstance
-    @Nullable
-    public TextShow getTextShow() {
-        if (textShows == null || textShows.isEmpty()) return null;
-        // Retorna o primeiro elemento ou null, ajuste conforme a lógica desejada (ex: buscar por "default")
-        return textShows.values().iterator().next();
-    }
-
     public boolean isShowCrosshair() {
         return showCrosshair;
     }
@@ -260,11 +227,6 @@ public class GunDisplay implements IDisplay {
     @Nullable
     public LaserConfig getLaserConfig() {
         return laserConfig;
-    }
-
-    // Getter Adicionado
-    public String getTracerColor() {
-        return tracerColor;
     }
 
     public boolean is3rdFixedHand() {

@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.util.ResourceScanner;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
@@ -60,7 +60,7 @@ public class JsonDataManager<T> extends SimplePreparableReloadListener<Map<Resou
                     dataMap.put(id, data);
                 }
             } catch (JsonParseException | IllegalArgumentException e) {
-                GunModFabric.LOGGER.error(marker, "Failed to load data file {}", id, e);
+                GunMod.LOGGER.error(marker, "Failed to load data file {}", id, e);
             }
         }
     }

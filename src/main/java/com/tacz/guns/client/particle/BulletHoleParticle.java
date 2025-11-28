@@ -1,6 +1,5 @@
 package com.tacz.guns.client.particle;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
+
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.config.client.RenderConfig;
@@ -25,7 +24,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -201,7 +201,7 @@ public class BulletHoleParticle extends TextureSheetParticle {
         }
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public static class Provider implements ParticleProvider<BulletHoleOption> {
         public Provider() {
         }

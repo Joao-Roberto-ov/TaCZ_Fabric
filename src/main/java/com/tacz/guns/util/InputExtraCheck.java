@@ -1,10 +1,10 @@
 package com.tacz.guns.util;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
+
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public final class InputExtraCheck {
     public static boolean isInGame() {
         Minecraft mc = Minecraft.getInstance();

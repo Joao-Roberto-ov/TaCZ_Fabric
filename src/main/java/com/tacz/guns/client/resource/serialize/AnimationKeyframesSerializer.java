@@ -1,7 +1,7 @@
 package com.tacz.guns.client.resource.serialize;
 
 import com.google.gson.*;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.client.resource.pojo.animation.bedrock.AnimationKeyframes;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectRBTreeMap;
 import net.minecraft.util.GsonHelper;
@@ -18,7 +18,7 @@ public class AnimationKeyframesSerializer implements JsonDeserializer<AnimationK
         // 如果是数字
         if (json.isJsonPrimitive()) {
             if (json.getAsJsonPrimitive().isString()) {
-                GunModFabric.LOGGER.debug("Molang is not supported: \"{}\"", json.getAsString());
+                GunMod.LOGGER.debug("Molang is not supported: \"{}\"", json.getAsString());
                 return new AnimationKeyframes(keyframes);
             } else {
                 float value = json.getAsJsonPrimitive().getAsFloat();
@@ -43,7 +43,7 @@ public class AnimationKeyframesSerializer implements JsonDeserializer<AnimationK
                 try {
                     time = Double.parseDouble(entrySet.getKey());
                 } catch (NumberFormatException e) {
-                    GunModFabric.LOGGER.debug("Molang is not supported: \"{}\"", entrySet.getKey());
+                    GunMod.LOGGER.debug("Molang is not supported: \"{}\"", entrySet.getKey());
                     return new AnimationKeyframes(keyframes);
                 }
                 AnimationKeyframes.Keyframe keyframe = readKeyFrames(entrySet.getValue());
@@ -94,7 +94,7 @@ public class AnimationKeyframesSerializer implements JsonDeserializer<AnimationK
 
     private float readVector3fElement(JsonElement element, String memberName) {
         if (element.getAsJsonPrimitive().isString()) {
-            GunModFabric.LOGGER.debug("Molang is not supported: \"{}\"", element.getAsString());
+            GunMod.LOGGER.debug("Molang is not supported: \"{}\"", element.getAsString());
             return 0;
         } else {
             return GsonHelper.convertToFloat(element, memberName);

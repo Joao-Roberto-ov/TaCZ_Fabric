@@ -4,10 +4,12 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.tacz.guns.client.resource.ClientAssetsManager;
-import com.tacz.guns.resource.manager.CommonDataManager;
+import com.tacz.guns.resource.CommonAssetsManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.util.concurrent.TimeUnit;
@@ -40,7 +42,7 @@ public class ReloadCommand {
 //                serverPlayer.sendSystemMessage(Component.translatable("commands.tacz.reload.backup"));
 //            }
 //        }
-//        GunModFabric.LOGGER.info("Model loading time: {} ms", time);
+//        GunMod.LOGGER.info("Model loading time: {} ms", time);
         context.getSource().sendSystemMessage(Component.translatable("commands.tacz.reload.success", time));
         return Command.SINGLE_SUCCESS;
     }

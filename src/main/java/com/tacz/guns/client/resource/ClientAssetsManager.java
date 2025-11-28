@@ -1,6 +1,5 @@
 package com.tacz.guns.client.resource;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.tacz.guns.api.client.animation.gltf.AnimationStructure;
@@ -26,7 +25,7 @@ import com.tacz.guns.client.resource.serialize.AnimationKeyframesSerializer;
 import com.tacz.guns.client.resource.serialize.ItemStackSerializer;
 import com.tacz.guns.client.resource.serialize.SoundEffectKeyframesSerializer;
 import com.tacz.guns.client.resource.serialize.Vector3fSerializer;
-import com.tacz.guns.resource.manager.CommonDataManager;
+import com.tacz.guns.resource.CommonAssetsManager;
 import com.tacz.guns.resource.manager.JsonDataManager;
 import com.tacz.guns.resource.manager.ScriptManager;
 import net.minecraft.client.Minecraft;
@@ -36,7 +35,9 @@ import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.world.item.ItemStack;
-
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import org.luaj.vm2.LuaTable;
@@ -51,7 +52,7 @@ import java.util.function.Consumer;
  * 客户端资源管理器<br/>
  * 所有枪包资源缓存在此
  */
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public enum ClientAssetsManager {
     INSTANCE;
     public static final Gson GSON = new GsonBuilder().registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
@@ -155,10 +156,10 @@ public enum ClientAssetsManager {
         return gltfAnimation.getGltfAnimation(id);
     }
 
-//    @Nullable
-//    public SoundAssetsManager.SoundData getSoundBuffers(ResourceLocation id) {
-//        return soundAssetsManager.getData(id);
-//    }
+    @Nullable
+    public SoundAssetsManager.SoundData getSoundBuffers(ResourceLocation id) {
+        return soundAssetsManager.getData(id);
+    }
 
     @Nullable
     public PackInfo getPackInfo(String namespace) {
@@ -173,7 +174,7 @@ public enum ClientAssetsManager {
         return packInfo.getData(namespace.getNamespace());
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public static void reloadAllPack() {
         try {
             Minecraft.getInstance().reloadResourcePacks().get();

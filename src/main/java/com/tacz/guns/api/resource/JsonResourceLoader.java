@@ -2,7 +2,7 @@ package com.tacz.guns.api.resource;
 
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.util.TacPathVisitor;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.io.IOUtils;
@@ -54,7 +54,7 @@ public abstract class JsonResourceLoader<T> {
             String path = matcher.group(2);
             ZipEntry entry = zipFile.getEntry(zipPath);
             if (entry == null) {
-                GunModFabric.LOGGER.warn(marker, "{} file don't exist", zipPath);
+                GunMod.LOGGER.warn(marker, "{} file don't exist", zipPath);
                 return false;
             }
             try (InputStream stream = zipFile.getInputStream(entry)) {
@@ -63,7 +63,7 @@ public abstract class JsonResourceLoader<T> {
                 resolveJson(registryName, json);
                 return true;
             } catch (IOException | JsonSyntaxException | JsonIOException exception) {
-                GunModFabric.LOGGER.warn(marker, "Failed to read file: {}, entry: {}", zipFile, entry);
+                GunMod.LOGGER.warn(marker, "Failed to read file: {}, entry: {}", zipFile, entry);
                 exception.printStackTrace();
             }
         }
@@ -78,14 +78,14 @@ public abstract class JsonResourceLoader<T> {
                     String json = IOUtils.toString(stream, StandardCharsets.UTF_8);
                     resolveJson(id, json);
                 } catch (IOException | JsonSyntaxException | JsonIOException exception) {
-                    GunModFabric.LOGGER.warn(marker, "Failed to read file: {}", file);
+                    GunMod.LOGGER.warn(marker, "Failed to read file: {}", file);
                     exception.printStackTrace();
                 }
             });
             try {
                 Files.walkFileTree(filePath, visitor);
             } catch (IOException e) {
-                GunModFabric.LOGGER.warn(marker, "Failed to walk file tree: {}", filePath);
+                GunMod.LOGGER.warn(marker, "Failed to walk file tree: {}", filePath);
                 e.printStackTrace();
             }
         }

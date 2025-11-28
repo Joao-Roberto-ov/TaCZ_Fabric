@@ -2,22 +2,25 @@
   "schemaVersion": 1,
   "id": "tacz",
   "version": "${version}",
-  "name": "Timeless & Classics Guns: Zero",
-  "description": "Port for Fabric 1.21.1",
+  "name": "Timeless and Classics Zero",
+  "description": "A modern gun mod for Minecraft.",
   "authors": [
-    "Timeless Squad",
-    "SeuNome"
+    "ClumsyAlien",
+    "Ma_Igor",
+    "Pos_2333",
+    "Hela",
+    "Leona"
   ],
   "contact": {
-    "homepage": "https://github.com/SeuRepositorio",
-    "sources": "https://github.com/SeuRepositorio"
+    "homepage": "https://github.com/DS-tacz/tacz",
+    "sources": "https://github.com/DS-tacz/tacz"
   },
-  "license": "GPL-3.0",
-  "icon": "assets/tacz/icon.png",
+  "license": "GPL-3.0-or-later",
+  "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.tacz.guns.GunModFabric"
+      "com.tacz.guns.GunMod"
     ],
     "client": [
       "com.tacz.guns.client.ClientInit"
@@ -27,8 +30,8 @@
     "tacz.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.5",
-    "minecraft": "1.21.1",
+    "fabricloader": ">=0.14.21",
+    "minecraft": "~1.21",
     "java": ">=21",
     "fabric-api": "*"
   }

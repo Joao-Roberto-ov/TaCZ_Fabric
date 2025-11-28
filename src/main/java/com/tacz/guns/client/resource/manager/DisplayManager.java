@@ -3,7 +3,7 @@ package com.tacz.guns.client.resource.manager;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.client.resource.pojo.display.IDisplay;
 import com.tacz.guns.resource.manager.JsonDataManager;
 import net.minecraft.resources.FileToIdConverter;
@@ -41,7 +41,7 @@ public class DisplayManager<T extends IDisplay> extends JsonDataManager<T> {
                     dataMap.put(id, data);
                 }
             } catch (JsonParseException | IllegalArgumentException e) {
-                GunModFabric.LOGGER.error(getMarker(), "Failed to load data file {}", id, e);
+                GunMod.LOGGER.error(getMarker(), "Failed to load data file {}", id, e);
             }
         }
     }

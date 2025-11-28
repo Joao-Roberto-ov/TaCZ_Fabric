@@ -23,7 +23,10 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+// REMOVIDO: import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import org.joml.Vector3f;
 import org.luaj.vm2.LuaTable;
 
@@ -171,23 +174,24 @@ public class GunAnimationStateContext extends ItemAnimationStateContext {
         if (iGun.useDummyAmmo(currentGunItem)) {
             return iGun.getDummyAmmoAmount(currentGunItem) > 0;
         }
-        return processCameraEntity(entity ->
-                    entity.getCapability(ForgeCapabilities.ITEM_HANDLER, null)
-                        .map(cap -> {
-                            // 背包检查
-                            for (int i = 0; i < cap.getSlots(); i++) {
-                                ItemStack checkAmmoStack = cap.getStackInSlot(i);
-                                if (checkAmmoStack.getItem() instanceof IAmmo iAmmo && iAmmo.isAmmoOfGun(currentGunItem, checkAmmoStack)) {
-                                    return true;
-                                }
-                                if (checkAmmoStack.getItem() instanceof IAmmoBox iAmmoBox && iAmmoBox.isAmmoBoxOfGun(currentGunItem, checkAmmoStack)) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        })
-                        .orElse(false)
-                ).orElse(false);
+
+        // Refatorado para Fabric/Vanilla: Removeu Forge Capabilities e usa Inventário Vanilla
+        return processCameraEntity(entity -> {
+            if (entity instanceof Player player) {
+                Inventory inventory = player.getInventory();
+                // Itera pelo inventário do jogador
+                for (int i = 0; i < inventory.getContainerSize(); i++) {
+                    ItemStack checkAmmoStack = inventory.getItem(i);
+                    if (checkAmmoStack.getItem() instanceof IAmmo iAmmo && iAmmo.isAmmoOfGun(currentGunItem, checkAmmoStack)) {
+                        return true;
+                    }
+                    if (checkAmmoStack.getItem() instanceof IAmmoBox iAmmoBox && iAmmoBox.isAmmoBoxOfGun(currentGunItem, checkAmmoStack)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }).orElse(false);
     }
 
     /**
@@ -212,7 +216,7 @@ public class GunAnimationStateContext extends ItemAnimationStateContext {
     /**
      * 获取持枪玩家的瞄准进度。
      * @return 持枪玩家的瞄准进度，取值范围：0 ~ 1。
-     *         0 代表没有喵准，1 代表喵准完成。
+     * 0 代表没有喵准，1 代表喵准完成。
      */
     public float getAimingProgress() {
         return processGunOperator(operator -> operator.getClientAimingProgress(partialTicks)).orElse(0f);
@@ -411,6 +415,9 @@ public class GunAnimationStateContext extends ItemAnimationStateContext {
             gunData = TimelessAPI.getClientGunIndex(iGun.getGunId(currentGunItem))
                     .map(ClientGunIndex::getGunData).orElse(null);
         }
+        // Fabric/Vanilla usa getComponents() ou methods similares nas versões mais novas,
+        // mas hasTag() ainda pode existir dependendo dos mappings.
+        // Se der erro aqui futuramente, substitua por DataComponents.
         if (currentGunItem.hasTag()) {
             nbtUtil = new LuaNbtAccessor(currentGunItem.getTag());
         }

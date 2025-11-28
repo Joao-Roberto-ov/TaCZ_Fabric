@@ -1,10 +1,11 @@
 package com.tacz.guns.resource;
 
 import com.google.gson.*;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.client.resource.pojo.PackInfo;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.io.*;
@@ -21,7 +22,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 public class PackConvertor {
-    public static final Path FOLDER = Paths.get("config", GunModFabric.MOD_ID, "custom");
+    public static final Path FOLDER = Paths.get("config", GunMod.MOD_ID, "custom");
     public static final Pattern PACK_INFO_PATTERN = Pattern.compile("^(\\w+)/pack\\.json$");
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
@@ -43,7 +44,7 @@ public class PackConvertor {
                 Files.createDirectories(folder.toPath());
             } catch (Exception e) {
                 msg(source, Component.translatable("message.tacz.converter.init_failed"));
-                GunModFabric.LOGGER.error("Failed to init tacz directory...", e);
+                GunMod.LOGGER.error("Failed to init tacz directory...", e);
                 return;
             }
         }
@@ -56,33 +57,33 @@ public class PackConvertor {
             StopWatch watch = StopWatch.createStarted();
             {
                 msg(source, Component.translatable("message.tacz.converter.start"));
-                GunModFabric.LOGGER.info("Start converting legacy packs...");
+                GunMod.LOGGER.info("Start converting legacy packs...");
                 for (File file : files) {
                     if (file.isFile() && file.getName().endsWith(".zip")) {
                         PackConvertor.LegacyPack pack = fromZipFile(file);
                         if (pack != null) {
                             msg(source, Component.translatable("message.tacz.converter.pack.start", file.getName()));
-                            GunModFabric.LOGGER.info("Attempt to converting legacy pack: {}", file.getName());
+                            GunMod.LOGGER.info("Attempt to converting legacy pack: {}", file.getName());
                             try {
                                 pack.convert();
                             } catch (FileAlreadyExistsException e) {
                                 msg(source, Component.translatable("message.tacz.converter.pack.exist"));
-                                GunModFabric.LOGGER.warn("Target file already exists: {}", file.getName());
+                                GunMod.LOGGER.warn("Target file already exists: {}", file.getName());
                                 skip++;
                                 continue;
                             } catch (Exception e){
                                 msg(source, Component.translatable("message.tacz.converter.pack.failed", file.getName()));
-                                GunModFabric.LOGGER.error("Failed to convert legacy pack: {}", file.getName(), e);
+                                GunMod.LOGGER.error("Failed to convert legacy pack: {}", file.getName(), e);
                                 error++;
                                 continue;
                             }
                             cnt++;
                             msg(source, Component.translatable("message.tacz.converter.pack.finish", file.getName()));
-                            GunModFabric.LOGGER.info("Legacy pack converted: {}", file.getName());
+                            GunMod.LOGGER.info("Legacy pack converted: {}", file.getName());
                         }
                     } else {
                         msg(source, Component.translatable("message.tacz.converter.pack.folder", file.getName()));
-                        GunModFabric.LOGGER.warn("Skip folder: {}", file.getName());
+                        GunMod.LOGGER.warn("Skip folder: {}", file.getName());
                         skip++;
                     }
                 }
@@ -90,7 +91,7 @@ public class PackConvertor {
             watch.stop();
             double time = watch.getTime(TimeUnit.MICROSECONDS) / 1000.0;
             msg(source, Component.translatable("message.tacz.converter.finish", time, cnt, skip, error));
-            GunModFabric.LOGGER.info("Convert finished! Total time: {} ms. Success : {}. Skipped {}. Failed: {}. Restart the game to load new packs!",
+            GunMod.LOGGER.info("Convert finished! Total time: {} ms. Success : {}. Skipped {}. Failed: {}. Restart the game to load new packs!",
                     time, cnt, skip, error);
         }
     }
@@ -111,7 +112,7 @@ public class PackConvertor {
                             return new PackConvertor.LegacyPack(file, namespace, info);
                         }
                     } catch (IOException | JsonSyntaxException | JsonIOException exception) {
-                        GunModFabric.LOGGER.warn(exception.getMessage());
+                        GunMod.LOGGER.warn(exception.getMessage());
                     }
                 }
             }
@@ -162,7 +163,7 @@ public class PackConvertor {
                         newZip.closeEntry();
                     }
                 } catch (JsonParseException e) {
-                    GunModFabric.LOGGER.warn("Failed to parse recipe to new style: {}", entry.getName());
+                    GunMod.LOGGER.warn("Failed to parse recipe to new style: {}", entry.getName());
                 }
                 return true;
             }
@@ -346,7 +347,7 @@ public class PackConvertor {
                     if (parsePackInfo(newZip, entry, oldPack)) continue;
                 }
             } catch (IOException e) {
-                GunModFabric.LOGGER.warn("Failed to convert pack: {}", file.getName());
+                GunMod.LOGGER.warn("Failed to convert pack: {}", file.getName());
             }
         }
     }

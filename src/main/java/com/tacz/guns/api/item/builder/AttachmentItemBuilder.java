@@ -33,8 +33,7 @@ public class AttachmentItemBuilder {
     }
 
     public ItemStack build() {
-        // .get() removido
-        ItemStack attachment = new ItemStack(ModItems.ATTACHMENT, this.count);
+        ItemStack attachment = new ItemStack(ModItems.ATTACHMENT.get(), this.count);
         if (attachment.getItem() instanceof IAttachment iAttachment) {
             iAttachment.setAttachmentId(attachment, this.attachmentId);
         }

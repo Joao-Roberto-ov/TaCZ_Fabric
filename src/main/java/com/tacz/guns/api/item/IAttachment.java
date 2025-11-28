@@ -1,16 +1,15 @@
 package com.tacz.guns.api.item;
 
-import com.tacz.guns.api.DefaultAssets;
 import com.tacz.guns.api.item.attachment.AttachmentType;
-import com.tacz.guns.init.ModDataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public interface IAttachment {
     /**
-     * Verifica se o ItemStack é um acessório válido.
+     * @return 如果物品类型为 IAttachment 则返回显式转换后的实例，否则返回 null。
      */
     @Nullable
     static IAttachment getIAttachmentOrNull(@Nullable ItemStack stack) {
@@ -24,61 +23,50 @@ public interface IAttachment {
     }
 
     /**
-     * Retorna o tipo de acessório (Mira, Boca, etc).
-     * Deve ser implementado pela classe do Item.
+     * 获取配件 ID
      */
-    @NotNull
-    AttachmentType getType(ItemStack stack);
+    @Nonnull
+    ResourceLocation getAttachmentId(ItemStack attachmentStack);
 
     /**
-     * Obtém o ID do acessório (ResourceLocation).
+     * 设置配件 ID
      */
-    @NotNull
-    default ResourceLocation getAttachmentId(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.ATTACHMENT_ID, DefaultAssets.EMPTY_ATTACHMENT_ID);
-    }
+    void setAttachmentId(ItemStack attachmentStack, @Nullable ResourceLocation attachmentId);
 
-    /**
-     * Define o ID do acessório.
+    /**@deprecated
      */
-    default void setAttachmentId(ItemStack stack, @Nullable ResourceLocation id) {
-        if (id != null) {
-            stack.set(ModDataComponents.ATTACHMENT_ID, id);
-        } else {
-            stack.remove(ModDataComponents.ATTACHMENT_ID);
-        }
-    }
-
-    /**
-     * Obtém o ID da skin aplicada.
-     */
+    @Deprecated
     @Nullable
-    default ResourceLocation getSkinId(ItemStack stack) {
-        return stack.get(ModDataComponents.SKIN_ID);
-    }
+    ResourceLocation getSkinId(ItemStack attachmentStack);
+
+    /**@deprecated
+     */
+    @Deprecated
+    void setSkinId(ItemStack attachmentStack, @Nullable ResourceLocation skinId);
 
     /**
-     * Define a skin.
+     * 获取瞄具配件的缩放倍率的数字索引，仅瞄具配件可用
      */
-    default void setSkinId(ItemStack stack, @Nullable ResourceLocation id) {
-        if (id != null) {
-            stack.set(ModDataComponents.SKIN_ID, id);
-        } else {
-            stack.remove(ModDataComponents.SKIN_ID);
-        }
-    }
+    int getZoomNumber(ItemStack attachmentStack);
 
     /**
-     * Obtém o nível de zoom atual (para miras variáveis).
+     * 设置瞄具配件的缩放倍率的数字索引
      */
-    default int getZoomNumber(ItemStack stack) {
-        return stack.getOrDefault(ModDataComponents.ZOOM_NUMBER, 0);
-    }
+    void setZoomNumber(ItemStack attachmentStack, int zoomNumber);
 
     /**
-     * Define o nível de zoom.
+     * 配件类型
      */
-    default void setZoomNumber(ItemStack stack, int number) {
-        stack.set(ModDataComponents.ZOOM_NUMBER, number);
-    }
+    @Nonnull
+    AttachmentType getType(ItemStack attachmentStack);
+
+    boolean hasCustomLaserColor(ItemStack attachmentStack);
+
+    /**
+     * 获取镭射配件的激光颜色
+     * @return 镭射颜色，RGB
+     */
+    int getLaserColor(ItemStack attachmentStack);
+
+    void setLaserColor(ItemStack attachmentStack, int color);
 }

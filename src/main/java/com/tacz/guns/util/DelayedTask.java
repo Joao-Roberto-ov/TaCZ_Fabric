@@ -1,7 +1,9 @@
 package com.tacz.guns.util;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
+
 import com.google.common.collect.Lists;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+
 import java.util.LinkedList;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -9,7 +11,7 @@ import java.util.function.Consumer;
 /**
  * 延迟执行的工具类
  */
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public final class DelayedTask {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     public static LinkedList<BooleanSupplier> SUPPLIERS = Lists.newLinkedList();

@@ -1,7 +1,7 @@
 package com.tacz.guns.client.renderer.crosshair;
 
 import com.google.common.collect.Maps;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Locale;
@@ -36,7 +36,7 @@ public enum CrosshairType {
     public static ResourceLocation getTextureLocation(CrosshairType type) {
         ResourceLocation location = CACHE.get(type);
         if (location == null) {
-            location = new ResourceLocation(GunModFabric.MOD_ID, "textures/crosshair/normal/%s.png".formatted(type.name().toLowerCase(Locale.US)));
+            location = new ResourceLocation(GunMod.MOD_ID, "textures/crosshair/normal/%s.png".formatted(type.name().toLowerCase(Locale.US)));
             CACHE.put(type, location);
         }
         return location;

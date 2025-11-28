@@ -2,7 +2,7 @@ package com.tacz.guns.resource.manager;
 
 import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.api.vmlib.LuaLibrary;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
@@ -77,7 +77,7 @@ public class ScriptManager extends SimplePreparableReloadListener< List<Map.Entr
                     loaded = chunk.call().checktable(1);
                     return loaded;
                 } catch (IllegalArgumentException | IOException | JsonParseException | LuaError jsonparseexception) {
-                    GunModFabric.LOGGER.warn(MARKER, "Failed to read script file: {}", resourceLocation);
+                    GunMod.LOGGER.warn(MARKER, "Failed to read script file: {}", resourceLocation);
                 }
                 return null;
             }

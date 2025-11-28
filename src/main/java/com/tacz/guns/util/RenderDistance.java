@@ -1,11 +1,12 @@
 package com.tacz.guns.util;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.tacz.guns.config.client.RenderConfig;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public final class RenderDistance {
     private static long GUI_RENDER_TIMESTAMP = -1L;
 

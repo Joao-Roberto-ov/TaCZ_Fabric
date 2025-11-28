@@ -1,27 +1,26 @@
 package com.tacz.guns.api.item;
 
 import com.tacz.guns.api.DefaultAssets;
-import com.tacz.guns.api.TimelessAPI; // Você precisará verificar se essa classe existe/compila depois
 import com.tacz.guns.api.item.attachment.AttachmentType;
-import com.tacz.guns.api.item.component.GunAttachmentsComponent;
-import com.tacz.guns.api.item.component.GunHeatComponent;
+import com.tacz.guns.api.item.gun.AbstractGunItem;
 import com.tacz.guns.api.item.gun.FireMode;
-import com.tacz.guns.init.ModDataComponents;
-import com.tacz.guns.resource.index.CommonGunIndex;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.Optional;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
+/**
+ * 这里不包含枪械的逻辑，只包含枪械的各种 nbt 访问。<br>
+ * 你可以在 {@link AbstractGunItem} 看到枪械逻辑
+ */
 public interface IGun {
     /**
-     * Verifica se o ItemStack é uma arma válida.
+     * @return 如果物品类型为 IGun 则返回显式转换后的实例，否则返回 null。
      */
     @Nullable
     static IGun getIGunOrNull(@Nullable ItemStack stack) {
@@ -34,10 +33,36 @@ public interface IGun {
         return null;
     }
 
+    /**
+     * 是否主手持枪
+     */
+    @Deprecated
+    static boolean mainhandHoldGun(LivingEntity livingEntity) {
+        return livingEntity.getMainHandItem().getItem() instanceof IGun;
+    }
+
+    /**
+     * 是否主手持枪
+     */
     static boolean mainHandHoldGun(LivingEntity livingEntity) {
         return livingEntity.getMainHandItem().getItem() instanceof IGun;
     }
 
+    /**
+     * 获取主手枪械的开火模式
+     */
+    @Deprecated
+    static FireMode getMainhandFireMode(LivingEntity livingEntity) {
+        ItemStack mainHandItem = livingEntity.getMainHandItem();
+        if (mainHandItem.getItem() instanceof IGun iGun) {
+            return iGun.getFireMode(mainHandItem);
+        }
+        return FireMode.UNKNOWN;
+    }
+
+    /**
+     * 获取主手枪械的开火模式
+     */
     static FireMode getMainHandFireMode(LivingEntity livingEntity) {
         ItemStack mainHandItem = livingEntity.getMainHandItem();
         if (mainHandItem.getItem() instanceof IGun iGun) {
@@ -46,290 +71,268 @@ public interface IGun {
         return FireMode.UNKNOWN;
     }
 
-    // --- Métodos de Identificação ---
-
-    @NotNull
-    default ResourceLocation getGunId(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.GUN_ID, DefaultAssets.EMPTY_GUN_ID);
-    }
-
-    default void setGunId(ItemStack gun, @Nullable ResourceLocation gunId) {
-        if (gunId != null) {
-            gun.set(ModDataComponents.GUN_ID, gunId);
-        } else {
-            gun.remove(ModDataComponents.GUN_ID);
-        }
-    }
-
-    @NotNull
-    default ResourceLocation getGunDisplayId(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.GUN_DISPLAY_ID, DefaultAssets.DEFAULT_GUN_DISPLAY_ID);
-    }
-
-    default void setGunDisplayId(ItemStack gun, @Nullable ResourceLocation displayId) {
-        if (displayId != null) {
-            gun.set(ModDataComponents.GUN_DISPLAY_ID, displayId);
-        } else {
-            gun.remove(ModDataComponents.GUN_DISPLAY_ID);
-        }
-    }
-
-    // --- Métodos de Munição ---
-
-    default int getCurrentAmmoCount(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.CURRENT_AMMO, 0);
-    }
-
-    default void setCurrentAmmoCount(ItemStack gun, int ammoCount) {
-        gun.set(ModDataComponents.CURRENT_AMMO, Math.max(ammoCount, 0));
-    }
-
-    default void reduceCurrentAmmoCount(ItemStack gun) {
-        if (!useInventoryAmmo(gun)) {
-            int current = getCurrentAmmoCount(gun);
-            setCurrentAmmoCount(gun, current - 1);
-        }
-    }
-
-    default boolean useDummyAmmo(ItemStack gun) {
-        return gun.has(ModDataComponents.DUMMY_AMMO);
-    }
-
-    default int getDummyAmmoAmount(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.DUMMY_AMMO, 0);
-    }
-
-    default void setDummyAmmoAmount(ItemStack gun, int amount) {
-        gun.set(ModDataComponents.DUMMY_AMMO, Math.max(amount, 0));
-    }
-
-    default void addDummyAmmoAmount(ItemStack gun, int amount) {
-        if (!useDummyAmmo(gun)) {
-            return;
-        }
-        int maxDummyAmmo = getMaxDummyAmmoAmount(gun); // Se não tiver limite, retorna MAX_VALUE (veja abaixo)
-        int current = getDummyAmmoAmount(gun);
-        // Evita overflow
-        long result = (long) current + amount;
-        int finalAmount = (int) Math.min(result, maxDummyAmmo);
-
-        setDummyAmmoAmount(gun, finalAmount);
-    }
-
-    default boolean hasMaxDummyAmmo(ItemStack gun) {
-        return gun.has(ModDataComponents.MAX_DUMMY_AMMO);
-    }
-
-    default int getMaxDummyAmmoAmount(ItemStack gun) {
-        // Retorna MAX_VALUE se não houver componente definido, para lógica de adição funcionar
-        return gun.getOrDefault(ModDataComponents.MAX_DUMMY_AMMO, Integer.MAX_VALUE);
-    }
-
-    default void setMaxDummyAmmoAmount(ItemStack gun, int amount) {
-        gun.set(ModDataComponents.MAX_DUMMY_AMMO, Math.max(amount, 0));
-    }
-
-    default boolean hasBulletInBarrel(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.BULLET_IN_BARREL, false);
-    }
-
-    default void setBulletInBarrel(ItemStack gun, boolean bulletInBarrel) {
-        gun.set(ModDataComponents.BULLET_IN_BARREL, bulletInBarrel);
-    }
-
-    // --- Métodos de Disparo e Estado ---
-
-    default FireMode getFireMode(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.FIRE_MODE, FireMode.UNKNOWN);
-    }
-
-    default void setFireMode(ItemStack gun, @Nullable FireMode fireMode) {
-        if (fireMode != null) {
-            gun.set(ModDataComponents.FIRE_MODE, fireMode);
-        } else {
-            gun.set(ModDataComponents.FIRE_MODE, FireMode.UNKNOWN);
-        }
-    }
-
-    // --- Acessórios (O ponto crítico da migração) ---
-
-    default boolean hasAttachmentLock(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.ATTACHMENT_LOCK, false);
-    }
-
-    default void setAttachmentLock(ItemStack gun, boolean lock) {
-        gun.set(ModDataComponents.ATTACHMENT_LOCK, lock);
-    }
-
-    @NotNull
-    default ItemStack getAttachment(ItemStack gun, AttachmentType type) {
-        if (!allowAttachmentType(gun, type)) {
-            return ItemStack.EMPTY;
-        }
-        GunAttachmentsComponent attachments = gun.getOrDefault(ModDataComponents.ATTACHMENTS, GunAttachmentsComponent.EMPTY);
-        return attachments.getAttachment(type);
-    }
-
-    default void installAttachment(@NotNull ItemStack gun, @NotNull ItemStack attachment) {
-        if (!allowAttachment(gun, attachment)) {
-            return;
-        }
-        // Precisamos da interface IAttachment no item do anexo para saber o tipo
-        // Assumindo que IAttachment já foi migrado ou existe (se não, precisaremos dele)
-        if (attachment.getItem() instanceof IAttachment iAttachment) {
-            AttachmentType type = iAttachment.getType(attachment);
-
-            GunAttachmentsComponent current = gun.getOrDefault(ModDataComponents.ATTACHMENTS, GunAttachmentsComponent.EMPTY);
-            // withAttachment retorna uma NOVA instância (record imutável)
-            GunAttachmentsComponent updated = current.withAttachment(type, attachment);
-
-            gun.set(ModDataComponents.ATTACHMENTS, updated);
-        }
-    }
-
-    default void unloadAttachment(@NotNull ItemStack gun, AttachmentType type) {
-        if (!allowAttachmentType(gun, type)) {
-            return;
-        }
-        GunAttachmentsComponent current = gun.getOrDefault(ModDataComponents.ATTACHMENTS, GunAttachmentsComponent.EMPTY);
-        GunAttachmentsComponent updated = current.withAttachment(type, ItemStack.EMPTY); // Remove o anexo
-        gun.set(ModDataComponents.ATTACHMENTS, updated);
-    }
-
-    @NotNull
-    default ResourceLocation getAttachmentId(ItemStack gun, AttachmentType type) {
-        ItemStack attachmentStack = getAttachment(gun, type);
-        if (attachmentStack.isEmpty()) {
-            return DefaultAssets.EMPTY_ATTACHMENT_ID;
-        }
-        // Aqui assume que o item de anexo também implementa IAttachment
-        if (attachmentStack.getItem() instanceof IAttachment iAttachment) {
-            return iAttachment.getAttachmentId(attachmentStack);
-        }
-        return DefaultAssets.EMPTY_ATTACHMENT_ID;
-    }
-
-    // --- Nível e XP ---
-
-    default int getLevel(ItemStack gun) {
-        int exp = getExp(gun);
-        return getLevel(exp); // Chama o método abstrato que calcula level baseado em XP
-    }
-
-    default int getExp(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.EXP, 0);
-    }
-
-    // Métodos abstratos para lógica de RPG (quem implementar a interface deve definir a tabela de XP)
-    int getLevel(int exp);
-    int getExp(int level);
-    int getMaxLevel();
-
-    default int getExpToNextLevel(ItemStack gun) {
-        int exp = getExp(gun);
-        int level = getLevel(exp);
-        if (level >= getMaxLevel()) {
-            return 0;
-        }
-        int nextLevelExp = getExp(level + 1);
-        return nextLevelExp - exp;
-    }
-
-    default int getExpCurrentLevel(ItemStack gun) {
-        int exp = getExp(gun);
-        int level = getLevel(exp);
-        if (level <= 0) {
-            return exp;
-        } else {
-            return exp - getExp(level - 1);
-        }
-    }
-
-    // --- Aquecimento (Heat) ---
-
-    default boolean hasHeatData(ItemStack gun) {
-        // Na 1.21, verificamos se o componente existe. Se não existe, não tem dados de calor.
-        return gun.has(ModDataComponents.HEAT);
-    }
-
-    default float getHeatAmount(ItemStack gun) {
-        GunHeatComponent heat = gun.getOrDefault(ModDataComponents.HEAT, GunHeatComponent.DEFAULT);
-        return heat.heatAmount();
-    }
-
-    default void setHeatAmount(ItemStack gun, float amount) {
-        float safeAmount = Math.max(0, amount);
-        GunHeatComponent current = gun.getOrDefault(ModDataComponents.HEAT, GunHeatComponent.DEFAULT);
-        // Preserva o estado de 'isLocked' (travado por superaquecimento)
-        gun.set(ModDataComponents.HEAT, new GunHeatComponent(safeAmount, current.isLocked()));
-    }
-
-    default boolean isOverheatLocked(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.HEAT, GunHeatComponent.DEFAULT).isLocked();
-    }
-
-    default void setOverheatLocked(ItemStack gun, boolean locked) {
-        GunHeatComponent current = gun.getOrDefault(ModDataComponents.HEAT, GunHeatComponent.DEFAULT);
-        gun.set(ModDataComponents.HEAT, new GunHeatComponent(current.heatAmount(), locked));
-    }
-
-    // --- Métodos Lógicos Abstratos (Mantidos do original) ---
-
-    void dropAllAmmo(Player player, ItemStack gun);
-
-    @NotNull
-    ItemStack getBuiltinAttachment(ItemStack gun, AttachmentType type);
-
-    @NotNull
-    ResourceLocation getBuiltInAttachmentId(ItemStack gun, AttachmentType type);
-
-    boolean allowAttachment(ItemStack gun, ItemStack attachmentItem);
-
-    boolean allowAttachmentType(ItemStack gun, AttachmentType type);
-
-    boolean useInventoryAmmo(ItemStack gun);
-
-    boolean hasInventoryAmmo(LivingEntity shooter, ItemStack gun, boolean needCheckAmmo);
-
-    int getRPM(ItemStack gun);
-
-    boolean isCanCrawl(ItemStack gun);
-
+    /**
+     * 获取瞄准放大倍率
+     */
     float getAimingZoom(ItemStack gunItem);
 
-    // --- Laser e Cosméticos ---
+    /**
+     * 枪械换弹时是否使用"虚拟备弹"而不是背包里的实际弹药
+     */
+    boolean useDummyAmmo(ItemStack gun);
 
-    default boolean hasCustomLaserColor(ItemStack gun) {
-        return gun.has(ModDataComponents.LASER_COLOR);
-    }
+    /**
+     * 获取枪械当前的"虚拟备弹"数量
+     */
+    int getDummyAmmoAmount(ItemStack gun);
 
-    default int getLaserColor(ItemStack gun) {
-        return gun.getOrDefault(ModDataComponents.LASER_COLOR, 0xFF0000);
-    }
+    /**
+     * 设置枪械当前的"虚拟备弹"数量
+     */
+    void setDummyAmmoAmount(ItemStack gun, int amount);
 
-    default void setLaserColor(ItemStack gun, int color) {
-        gun.set(ModDataComponents.LASER_COLOR, color);
-    }
+    /**
+     * 添加枪械当前的"虚拟备弹"数量
+     */
+    void addDummyAmmoAmount(ItemStack gun, int amount);
 
-    // Lógica complexa de lerp (interpolação) movida para métodos default para facilitar
-    default float lerpRPM(ItemStack gun) {
-        // Nota: TimelessAPI.getCommonGunIndex precisará ser verificado se está disponível nessa fase
-        Optional<CommonGunIndex> indexOpt = TimelessAPI.getCommonGunIndex(getGunId(gun));
-        if (indexOpt.isPresent()) {
-            var heatData = indexOpt.get().getGunData().getHeatData();
-            float heatPercentage = (getHeatAmount(gun) / heatData.getHeatMax());
-            return Mth.lerp(heatPercentage, heatData.getMinRpmMod(), heatData.getMaxRpmMod());
-        }
-        return 1f;
-    }
+    /**
+     * 检查是否有设置"虚拟备弹"最大数量
+     */
+    boolean hasMaxDummyAmmo(ItemStack gun);
 
-    default float lerpInaccuracy(ItemStack gun) {
-        Optional<CommonGunIndex> indexOpt = TimelessAPI.getCommonGunIndex(getGunId(gun));
-        if (indexOpt.isPresent()) {
-            var heatData = indexOpt.get().getGunData().getHeatData();
-            float heatPercentage = (getHeatAmount(gun) / heatData.getHeatMax());
-            return Mth.lerp(heatPercentage, heatData.getMinInaccuracy(), heatData.getMaxInaccuracy());
-        }
-        return 1f;
-    }
+    /**
+     * 获取枪械当前的"虚拟备弹"最大数量
+     */
+    int getMaxDummyAmmoAmount(ItemStack gun);
+
+    /**
+     * 设置枪械当前的"虚拟备弹"最大数量
+     */
+    void setMaxDummyAmmoAmount(ItemStack gun, int amount);
+
+    /**
+     * 获取枪械的"配件锁"情况
+     */
+    boolean hasAttachmentLock(ItemStack gun);
+
+    /**
+     * 设置枪械的"配件锁"
+     */
+    void setAttachmentLock(ItemStack gun, boolean locked);
+
+    /**
+     * 获取枪械 ID
+     */
+    @NotNull
+    ResourceLocation getGunId(ItemStack gun);
+
+    /**
+     * 设置枪械 ID
+     */
+    void setGunId(ItemStack gun, @Nullable ResourceLocation gunId);
+
+    /**
+     * 获取枪械客户端效果 ID, 如果是默认皮肤将返回 {@link DefaultAssets#DEFAULT_GUN_DISPLAY_ID}<br/>
+     * 你应该使用 {@link com.tacz.guns.api.TimelessAPI#getGunDisplay(ItemStack)} 获取正确的客户端效果
+     */
+    @NotNull
+    ResourceLocation getGunDisplayId(ItemStack gun);
+
+    /**
+     * 设置枪械客户端效果 ID
+     */
+    void setGunDisplayId(ItemStack gun, @Nullable ResourceLocation displayId);
+
+    /**
+     * 获取输入的经验值对应的等级。
+     *
+     * @param exp 经验值
+     * @return 对应的等级
+     */
+    int getLevel(int exp);
+
+    /**
+     * 获取输入的等级需要至少多少的经验值。
+     *
+     * @param level 等级
+     * @return 至少需要的经验值
+     */
+    int getExp(int level);
+
+    /**
+     * 返回允许的最大等级。
+     *
+     * @return 最大等级
+     */
+    int getMaxLevel();
+
+    /**
+     * 获取枪械当前等级
+     */
+    int getLevel(ItemStack gun);
+
+    /**
+     * 获取积累的全部经验值。
+     *
+     * @param gun 输入物品
+     * @return 全部经验值
+     */
+    int getExp(ItemStack gun);
+
+    /**
+     * 获取到下个等级需要的经验值。
+     *
+     * @param gun 输入物品
+     * @return 到下个等级需要的经验值。如果等级已经到达最大，则返回 0
+     */
+    int getExpToNextLevel(ItemStack gun);
+
+    /**
+     * 获取当前等级已经积累的经验值。
+     *
+     * @param gun 输入物品
+     * @return 当前等级已经积累的经验值
+     */
+    int getExpCurrentLevel(ItemStack gun);
+
+    /**
+     * 获取开火模式
+     *
+     * @param gun 枪
+     * @return 开火模式
+     */
+    FireMode getFireMode(ItemStack gun);
+
+    /**
+     * 设置开火模式
+     */
+    void setFireMode(ItemStack gun, @Nullable FireMode fireMode);
+
+    /**
+     * 获取当前枪械弹药数
+     */
+    int getCurrentAmmoCount(ItemStack gun);
+
+    /**
+     * 设置当前枪械弹药数
+     */
+    void setCurrentAmmoCount(ItemStack gun, int ammoCount);
+
+    /**
+     * 减少一个当前枪械弹药数
+     */
+    void reduceCurrentAmmoCount(ItemStack gun);
+
+    /**
+     * 取下枪内所有子弹。玩家的特殊方法，默认卸载弹药时使用
+     */
+    void dropAllAmmo(Player player, ItemStack gun);
+
+    /**
+     * 获取当前枪械指定类型的配件
+     */
+    @Nonnull
+    ItemStack getAttachment(ItemStack gun, AttachmentType type);
+
+    @Nonnull
+    ItemStack getBuiltinAttachment(ItemStack gun, AttachmentType type);
+
+    /**
+     * 获取当前枪械指定类型的配件的 NBT 数据
+     *
+     * @return 如果为空，那么没有配件数据
+     */
+    @Nullable
+    CompoundTag getAttachmentTag(ItemStack gun, AttachmentType type);
+
+    @Nonnull
+    ResourceLocation getBuiltInAttachmentId(ItemStack gun, AttachmentType type);
+
+    /**
+     * 获取枪械的配件 ID
+     * <p>
+     * 如果不存在，返回 {@link DefaultAssets#EMPTY_ATTACHMENT_ID};
+     */
+    @Nonnull
+    ResourceLocation getAttachmentId(ItemStack gun, AttachmentType type);
+
+    /**
+     * 安装配件
+     */
+    void installAttachment(@Nonnull ItemStack gun, @Nonnull ItemStack attachment);
+
+    /**
+     * 卸载配件
+     */
+    void unloadAttachment(@Nonnull ItemStack gun, AttachmentType type);
+
+    /**
+     * 该枪械是否允许装配该配件
+     */
+    boolean allowAttachment(ItemStack gun, ItemStack attachmentItem);
+
+    /**
+     * 该枪械是否允许某类型配件
+     */
+    boolean allowAttachmentType(ItemStack gun, AttachmentType type);
+
+    /**
+     * 枪管中是否有子弹，用于闭膛待击的枪械
+     */
+    boolean hasBulletInBarrel(ItemStack gun);
+
+    /**
+     * 设置枪管中的子弹有无，用于闭膛待击的枪械
+     */
+    void setBulletInBarrel(ItemStack gun, boolean bulletInBarrel);
+
+    /**
+     * 枪械是否为备弹直读
+     */
+    boolean useInventoryAmmo(ItemStack gun);
+
+    /**
+     * 获取枪械是否有备弹 (只针对背包直读读的机制使用)
+     */
+    boolean hasInventoryAmmo(LivingEntity shooter, ItemStack gun, boolean needCheckAmmo);
+
+    /**
+     * 获取 RPM
+     */
+    int getRPM(ItemStack gun);
+
+    /**
+     * 获取是否可以趴下
+     */
+    boolean isCanCrawl(ItemStack gun);
+
+    boolean hasCustomLaserColor(ItemStack gun);
+
+    int getLaserColor(ItemStack gun);
+
+    void setLaserColor(ItemStack gun, int color);
+
+    /**
+     * Heat Data
+     */
+    boolean hasHeatData(ItemStack gun);
+
+    /**
+     * 是否完全过热
+     */
+    boolean isOverheatLocked(ItemStack gun);
+
+    void setOverheatLocked(ItemStack gun, boolean locked);
+
+    /**
+     * 设置当前过热值
+     */
+    void setHeatAmount(ItemStack gun, float amount);
+
+    float lerpRPM(ItemStack gun);
+
+    float lerpInaccuracy(ItemStack gun);
+
+    float getHeatAmount(ItemStack gun);
 }

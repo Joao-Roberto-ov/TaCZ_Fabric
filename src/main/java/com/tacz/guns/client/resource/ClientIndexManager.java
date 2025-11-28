@@ -1,8 +1,7 @@
 package com.tacz.guns.client.resource;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
+
 import com.google.common.collect.Maps;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.client.gameplay.IClientPlayerGunOperator;
 import com.tacz.guns.api.item.IGun;
@@ -19,11 +18,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Map;
 import java.util.Set;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ClientIndexManager {
     public static final Map<ResourceLocation, GunDisplayInstance> GUN_DISPLAY = Maps.newHashMap();
     public static final Map<ResourceLocation, ClientGunIndex> GUN_INDEX = Maps.newHashMap();
@@ -58,7 +59,7 @@ public class ClientIndexManager {
             try {
                 GUN_DISPLAY.put(entry.getKey(), GunDisplayInstance.create(entry.getValue()));
             } catch (IllegalArgumentException exception) {
-                GunModFabric.LOGGER.warn("{} display init read fail!", entry.getKey(), exception);
+                GunMod.LOGGER.warn("{} display init read fail!", entry.getKey(), exception);
             }
         });
     }
@@ -70,7 +71,7 @@ public class ClientIndexManager {
             try {
                 GUN_INDEX.put(id, ClientGunIndex.getInstance(pojo));
             } catch (IllegalArgumentException exception) {
-                GunModFabric.LOGGER.warn("{} index file read fail!", id, exception);
+                GunMod.LOGGER.warn("{} index file read fail!", id, exception);
             }
         });
     }
@@ -82,7 +83,7 @@ public class ClientIndexManager {
             try {
                 AMMO_INDEX.put(id, ClientAmmoIndex.getInstance(pojo));
             } catch (IllegalArgumentException exception) {
-                GunModFabric.LOGGER.warn("{} index file read fail!", id, exception);
+                GunMod.LOGGER.warn("{} index file read fail!", id, exception);
             }
         });
     }
@@ -94,7 +95,7 @@ public class ClientIndexManager {
             try {
                 ATTACHMENT_INDEX.put(id, ClientAttachmentIndex.getInstance(id, pojo));
             } catch (IllegalArgumentException exception) {
-                GunModFabric.LOGGER.warn("{} index file read fail!", id, exception);
+                GunMod.LOGGER.warn("{} index file read fail!", id, exception);
             }
         });
     }
@@ -106,7 +107,7 @@ public class ClientIndexManager {
             try {
                 BLOCK_INDEX.put(id, ClientBlockIndex.getInstance(pojo));
             } catch (IllegalArgumentException exception) {
-                GunModFabric.LOGGER.warn("{} index file read fail!", id, exception);
+                GunMod.LOGGER.warn("{} index file read fail!", id, exception);
             }
         });
     }

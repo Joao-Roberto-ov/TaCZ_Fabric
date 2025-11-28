@@ -1,11 +1,11 @@
 package com.tacz.guns.client.sound;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
+
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.IAttachment;
 import com.tacz.guns.client.resource.GunDisplayInstance;
 import com.tacz.guns.config.common.GunConfig;
 import com.tacz.guns.init.ModSounds;
+import com.tacz.guns.network.message.ServerMessageSound;
 import com.tacz.guns.resource.pojo.data.gun.GunData;
 import com.tacz.guns.sound.SoundManager;
 import net.minecraft.client.Minecraft;
@@ -16,12 +16,13 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class SoundPlayManager {
     /**
      * 用于阻止连发时，反复播放 DryFire 音效
@@ -151,24 +152,24 @@ public class SoundPlayManager {
         playClientSound(entity, display.getSounds(SoundManager.KILL_SOUND), 1.0f, 1.0f, GunConfig.DEFAULT_GUN_OTHER_SOUND_DISTANCE.get());
     }
 
-//    public static void playMessageSound(ServerMessageSound message) {
-//        ClientLevel level = Minecraft.getInstance().level;
-//        if (level == null || !(level.getEntity(message.getEntityId()) instanceof LivingEntity livingEntity)) {
-//            return;
-//        }
-//        ResourceLocation gunId = message.getGunId();
-//        ResourceLocation gunDisplayId = message.getGunDisplayId();
-//        TimelessAPI.getGunDisplay(gunDisplayId, gunId).ifPresent(index -> {
-//            String soundName = message.getSoundName();
-//            ResourceLocation soundId = index.getSounds(soundName);
-//            if (soundId == null) {
-//                return;
-//            }
-//            if (SoundManager.SHOOT_3P_SOUND.equals(soundName) || SoundManager.SILENCE_3P_SOUND.equals(soundName)) {
-//                playClientSound(livingEntity, soundId, message.getVolume(), message.getPitch(), message.getDistance(), true);
-//            } else {
-//                playClientSound(livingEntity, soundId, message.getVolume(), message.getPitch(), message.getDistance());
-//            }
-//        });
-//    }
+    public static void playMessageSound(ServerMessageSound message) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null || !(level.getEntity(message.getEntityId()) instanceof LivingEntity livingEntity)) {
+            return;
+        }
+        ResourceLocation gunId = message.getGunId();
+        ResourceLocation gunDisplayId = message.getGunDisplayId();
+        TimelessAPI.getGunDisplay(gunDisplayId, gunId).ifPresent(index -> {
+            String soundName = message.getSoundName();
+            ResourceLocation soundId = index.getSounds(soundName);
+            if (soundId == null) {
+                return;
+            }
+            if (SoundManager.SHOOT_3P_SOUND.equals(soundName) || SoundManager.SILENCE_3P_SOUND.equals(soundName)) {
+                playClientSound(livingEntity, soundId, message.getVolume(), message.getPitch(), message.getDistance(), true);
+            } else {
+                playClientSound(livingEntity, soundId, message.getVolume(), message.getPitch(), message.getDistance());
+            }
+        });
+    }
 }

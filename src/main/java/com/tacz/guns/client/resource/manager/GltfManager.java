@@ -2,7 +2,7 @@ package com.tacz.guns.client.resource.manager;
 
 import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
-import com.tacz.guns.GunModFabric;
+import com.tacz.guns.GunMod;
 import com.tacz.guns.api.client.animation.gltf.AnimationStructure;
 import com.tacz.guns.client.resource.ClientAssetsManager;
 import com.tacz.guns.client.resource.pojo.animation.gltf.RawAnimationStructure;
@@ -40,7 +40,7 @@ public class GltfManager extends SimplePreparableReloadListener<Map<ResourceLoca
                 AnimationStructure animationStructure = new AnimationStructure(rawStructure);
                 output.put(resourcelocation1, animationStructure);
             } catch (IllegalArgumentException | IOException | JsonParseException jsonparseexception) {
-                GunModFabric.LOGGER.warn(MARKER, "Failed to read gltf animation file: {}", resourcelocation);
+                GunMod.LOGGER.warn(MARKER, "Failed to read gltf animation file: {}", resourcelocation);
             }
         }
         return output;
