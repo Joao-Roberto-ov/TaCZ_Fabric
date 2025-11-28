@@ -5,7 +5,6 @@ import com.tacz.guns.GunModFabric;
 import com.tacz.guns.api.DefaultAssets;
 import com.tacz.guns.api.item.builder.AmmoItemBuilder;
 import com.tacz.guns.api.item.builder.AttachmentItemBuilder;
-import com.tacz.guns.api.item.builder.GunItemBuilder;
 import com.tacz.guns.init.ModItems;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -39,13 +38,6 @@ public record TabConfig(ResourceLocation id, String name, ItemStack icon) {
 
     public static final List<TabConfig> DEFAULT_TABS = List.of(
             new TabConfig(TabConfig.TAB_AMMO, "tacz.type.ammo.name", AmmoItemBuilder.create().setId(DefaultAssets.DEFAULT_AMMO_ID).build()),
-            new TabConfig(TabConfig.TAB_PISTOL, "tacz.type.pistol.name", GunItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "glock_17")).forceBuild()),
-            new TabConfig(TabConfig.TAB_SNIPER, "tacz.type.sniper.name", GunItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "ai_awp")).forceBuild()),
-            new TabConfig(TabConfig.TAB_RIFLE, "tacz.type.rifle.name", GunItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "ak47")).forceBuild()),
-            new TabConfig(TabConfig.TAB_SHOTGUN, "tacz.type.shotgun.name", GunItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "db_short")).forceBuild()),
-            new TabConfig(TabConfig.TAB_SMG, "tacz.type.smg.name", GunItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "hk_mp5a5")).forceBuild()),
-            new TabConfig(TabConfig.TAB_RPG, "tacz.type.rpg.name", GunItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "rpg7")).forceBuild()),
-            new TabConfig(TabConfig.TAB_MG, "tacz.type.mg.name", GunItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "m249")).forceBuild()),
             new TabConfig(TabConfig.TAB_SCOPE, "tacz.type.scope.name",  AttachmentItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "scope_acog_ta31")).build()),
             new TabConfig(TabConfig.TAB_MUZZLE, "tacz.type.muzzle.name", AttachmentItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "muzzle_compensator_trident")).build()),
             new TabConfig(TabConfig.TAB_STOCK, "tacz.type.stock.name", AttachmentItemBuilder.create().setId(new ResourceLocation(GunModFabric.MOD_ID, "stock_militech_b5")).build()),

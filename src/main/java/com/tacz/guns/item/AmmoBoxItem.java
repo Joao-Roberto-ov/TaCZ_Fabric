@@ -7,10 +7,8 @@ import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.IAmmo;
 import com.tacz.guns.api.item.IAmmoBox;
 import com.tacz.guns.api.item.builder.AmmoItemBuilder;
-import com.tacz.guns.api.item.nbt.AmmoBoxItemDataAccessor;
 import com.tacz.guns.config.sync.SyncConfig;
 import com.tacz.guns.init.ModItems;
-import com.tacz.guns.inventory.tooltip.AmmoBoxTooltip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.nbt.CompoundTag;
@@ -33,7 +31,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class AmmoBoxItem extends Item implements DyeableLeatherItem, AmmoBoxItemDataAccessor {
+public class AmmoBoxItem {
     public static final ResourceLocation PROPERTY_NAME = new ResourceLocation(GunModFabric.MOD_ID, "ammo_statue");
 
     public static final int IRON_LEVEL = 0;

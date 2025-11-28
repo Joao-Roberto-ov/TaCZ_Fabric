@@ -1,10 +1,8 @@
 package com.tacz.guns.client.model.bedrock;
-
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.tacz.guns.client.model.IFunctionalRenderer;
 import com.tacz.guns.client.resource.pojo.model.*;
-import com.tacz.guns.compat.oculus.OculusCompat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -361,9 +359,9 @@ public class BedrockModel {
             model.render(matrixStack, transformType, builder, light, overlay, red, green, blue, alpha);
         }
         matrixStack.popPose();
-        if (!OculusCompat.endBatch(bufferSource)) {
-            bufferSource.endBatch(renderType);
-        }
+//        if (!OculusCompat.endBatch(bufferSource)) {
+//            bufferSource.endBatch(renderType);
+//        }
 
         for (IFunctionalRenderer renderer : delegateRenderers) {
             renderer.render(matrixStack, builder, transformType, light, overlay);

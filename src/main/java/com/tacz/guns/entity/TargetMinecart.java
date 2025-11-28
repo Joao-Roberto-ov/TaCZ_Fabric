@@ -8,8 +8,6 @@ import com.tacz.guns.config.common.OtherConfig;
 import com.tacz.guns.init.ModBlocks;
 import com.tacz.guns.init.ModItems;
 import com.tacz.guns.init.ModSounds;
-import com.tacz.guns.network.NetworkHandler;
-import com.tacz.guns.network.message.event.ServerMessageGunHurt;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;

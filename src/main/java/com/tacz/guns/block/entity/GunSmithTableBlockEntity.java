@@ -1,10 +1,11 @@
 package com.tacz.guns.block.entity;
+
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvType;
 import com.tacz.guns.api.DefaultAssets;
 import com.tacz.guns.init.ModBlocks;
-import com.tacz.guns.inventory.GunSmithTableMenu;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -23,11 +24,12 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 public class GunSmithTableBlockEntity extends BlockEntity implements MenuProvider {
+    // .get() removido dos argumentos
     public static final BlockEntityType<GunSmithTableBlockEntity> TYPE = BlockEntityType.Builder.of(GunSmithTableBlockEntity::new,
-            ModBlocks.GUN_SMITH_TABLE.get(),
-            ModBlocks.WORKBENCH_111.get(),
-            ModBlocks.WORKBENCH_121.get(),
-            ModBlocks.WORKBENCH_211.get()
+            ModBlocks.GUN_SMITH_TABLE,
+            ModBlocks.WORKBENCH_111,
+            ModBlocks.WORKBENCH_121,
+            ModBlocks.WORKBENCH_211
     ).build(null);
 
     private static final String ID_TAG = "BlockId";
@@ -55,25 +57,22 @@ public class GunSmithTableBlockEntity extends BlockEntity implements MenuProvide
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
-    public AABB getRenderBoundingBox() {
-        return new AABB(worldPosition.offset(-2, 0, -2), worldPosition.offset(2, 1, 2));
+    public CompoundTag getUpdateTag(HolderLookup.Provider registryLookup) {
+        return this.saveWithoutMetadata(registryLookup);
     }
+
+    // Removido @Environment(EnvType.CLIENT) se causar problemas, mas geralmente é seguro no Fabric se o loader lidar bem.
+    // getRenderBoundingBox não existe no Fabric/Vanilla padrão da mesma forma, mas deixarei comentado se der erro.
+    // public AABB getRenderBoundingBox() { ... }
 
     @Override
     public Component getDisplayName() {
         return Component.literal("Gun Smith Table");
     }
 
-    @Nullable
     @Override
-    public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
-        return new GunSmithTableMenu(id, inventory, getId());
-    }
-
-    @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+        super.loadAdditional(tag, registryLookup);
         if (tag.contains(ID_TAG, Tag.TAG_STRING)) {
             this.id = ResourceLocation.tryParse(tag.getString(ID_TAG));
         } else {
@@ -82,15 +81,17 @@ public class GunSmithTableBlockEntity extends BlockEntity implements MenuProvide
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+        super.saveAdditional(tag, registryLookup);
         if (id != null) {
             tag.putString(ID_TAG, id.toString());
         }
     }
 
+    @Nullable
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        // Retornando null por enquanto pois deletamos o Menu/Container
+        return null;
     }
 }

@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
 import com.tacz.guns.GunModFabric;
 import com.tacz.guns.client.resource.pojo.PackInfo;
-import com.tacz.guns.resource.CommonAssetsManager;
+import com.tacz.guns.resource.manager.CommonDataManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;

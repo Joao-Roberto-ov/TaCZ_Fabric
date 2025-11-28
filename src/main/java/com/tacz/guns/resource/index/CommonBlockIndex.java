@@ -1,7 +1,7 @@
 package com.tacz.guns.resource.index;
 
 import com.google.common.base.Preconditions;
-import com.tacz.guns.resource.CommonAssetsManager;
+import com.tacz.guns.resource.manager.CommonDataManager;
 import com.tacz.guns.resource.filter.RecipeFilter;
 import com.tacz.guns.resource.pojo.BlockIndexPOJO;
 import com.tacz.guns.resource.pojo.data.block.BlockData;

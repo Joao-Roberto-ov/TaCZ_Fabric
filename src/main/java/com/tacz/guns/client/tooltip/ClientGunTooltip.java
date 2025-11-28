@@ -3,14 +3,12 @@ package com.tacz.guns.client.tooltip;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.IGun;
 import com.tacz.guns.api.item.builder.AmmoItemBuilder;
-import com.tacz.guns.client.input.RefitKey;
 import com.tacz.guns.client.resource.ClientAssetsManager;
 import com.tacz.guns.client.resource.GunDisplayInstance;
 import com.tacz.guns.client.resource.pojo.PackInfo;
 import com.tacz.guns.client.resource.pojo.display.gun.AmmoCountStyle;
 import com.tacz.guns.client.resource.pojo.display.gun.DamageStyle;
 import com.tacz.guns.config.sync.SyncConfig;
-import com.tacz.guns.inventory.tooltip.GunTooltip;
 import com.tacz.guns.item.GunTooltipPart;
 import com.tacz.guns.resource.index.CommonGunIndex;
 import com.tacz.guns.resource.pojo.data.gun.Bolt;
@@ -62,11 +60,25 @@ public class ClientGunTooltip implements ClientTooltipComponent {
 
     private int maxWidth;
 
+    // TODO: Construtor original comentado - precisa de GunTooltip do lado do servidor
+    /*
     public ClientGunTooltip(GunTooltip tooltip) {
         this.gun = tooltip.getGun();
         this.iGun = tooltip.getIGun();
         ResourceLocation ammoId = tooltip.getAmmoId();
         this.gunIndex = tooltip.getGunIndex();
+        this.display = TimelessAPI.getGunDisplay(gun).orElse(null);
+        this.ammo = AmmoItemBuilder.create().setId(ammoId).build();
+        this.maxWidth = 0;
+        this.getText();
+    }
+    */
+
+    // Construtor temporário para compilação
+    public ClientGunTooltip(ItemStack gun, IGun iGun, ResourceLocation ammoId, CommonGunIndex gunIndex) {
+        this.gun = gun;
+        this.iGun = iGun;
+        this.gunIndex = gunIndex;
         this.display = TimelessAPI.getGunDisplay(gun).orElse(null);
         this.ammo = AmmoItemBuilder.create().setId(ammoId).build();
         this.maxWidth = 0;
@@ -212,11 +224,14 @@ public class ClientGunTooltip implements ClientTooltipComponent {
         }
 
 
+        // TODO: Descomentar quando RefitKey for implementado
+        /*
         if (shouldShow(GunTooltipPart.UPGRADES_TIP)) {
             String keyName = Component.keybind(RefitKey.REFIT_KEY.getName()).getString().toUpperCase(Locale.ENGLISH);
             this.tips = Component.translatable("tooltip.tacz.gun.tips", keyName).withStyle(ChatFormatting.YELLOW).withStyle(ChatFormatting.ITALIC);
             this.maxWidth = Math.max(font.width(this.tips), this.maxWidth);
         }
+        */
 
 
         if (shouldShow(GunTooltipPart.PACK_INFO)) {
@@ -294,8 +309,10 @@ public class ClientGunTooltip implements ClientTooltipComponent {
             yOffset += 4;
 
             // Z 键说明
-            font.drawInBatch(this.tips, pX, yOffset, 0xffffff, false, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, 0xF000F0);
-            yOffset += 10;
+            if (this.tips != null) {
+                font.drawInBatch(this.tips, pX, yOffset, 0xffffff, false, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, 0xF000F0);
+                yOffset += 10;
+            }
         }
 
 

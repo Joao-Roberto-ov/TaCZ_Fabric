@@ -1,23 +1,18 @@
 package com.tacz.guns.api.item.gun;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvType;
-import com.tacz.guns.api.DefaultAssets;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.entity.ReloadState;
 import com.tacz.guns.api.item.*;
 import com.tacz.guns.api.item.attachment.AttachmentType;
 import com.tacz.guns.api.item.builder.AmmoItemBuilder;
-//import com.tacz.guns.api.item.builder.GunItemBuilder;
-import com.tacz.guns.client.renderer.item.GunItemRendererWrapper;
 import com.tacz.guns.client.resource.index.ClientGunIndex;
 import com.tacz.guns.entity.shooter.ShooterDataHolder;
-import com.tacz.guns.inventory.tooltip.GunTooltip;
 import com.tacz.guns.resource.index.CommonGunIndex;
 import com.tacz.guns.resource.pojo.data.gun.FeedType;
 import com.tacz.guns.resource.pojo.data.gun.GunData;
 import com.tacz.guns.util.AllowAttachmentTagMatcher;
 import com.tacz.guns.util.AttachmentDataUtils;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -30,7 +25,6 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class AbstractGunItem extends Item implements IGun, IAnimationItem {
@@ -374,7 +368,7 @@ public abstract class AbstractGunItem extends Item implements IGun, IAnimationIt
             if (optional.isPresent()) {
                 CommonGunIndex gunIndex = optional.get();
                 ResourceLocation ammoId = gunIndex.getGunData().getAmmoId();
-                return Optional.of(new GunTooltip(stack, iGun, ammoId, gunIndex));
+//                return Optional.of(new GunTooltip(stack, iGun, ammoId, gunIndex));
             }
         }
         return Optional.empty();

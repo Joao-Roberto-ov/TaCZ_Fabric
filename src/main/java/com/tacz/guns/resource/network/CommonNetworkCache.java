@@ -6,7 +6,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import com.tacz.guns.GunModFabric;
 import com.tacz.guns.api.modifier.JsonProperty;
-import com.tacz.guns.resource.CommonAssetsManager;
+import com.tacz.guns.resource.manager.CommonDataManager;
 import com.tacz.guns.resource.ICommonResourceProvider;
 import com.tacz.guns.resource.filter.RecipeFilter;
 import com.tacz.guns.resource.index.CommonAmmoIndex;

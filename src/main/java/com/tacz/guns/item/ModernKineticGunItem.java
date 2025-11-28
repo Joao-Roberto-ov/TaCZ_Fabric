@@ -50,11 +50,11 @@ public class ModernKineticGunItem extends Item implements IGun {
         return false;
     }
 
-    @Override
-    public boolean allowAttachmentType(ItemStack gun, AttachmentType type) {
-        GunData data = TimelessAPI.getGunData(this.getGunId(gun));
-        return data != null && data.getAllowAttachments().contains(type);
-    }
+//    @Override
+//    public boolean allowAttachmentType(ItemStack gun, AttachmentType type) {
+//        GunData data = TimelessAPI.getGunData(this.getGunId(gun));
+//        return data != null && data.getAllowAttachments().contains(type);
+//    }
 
     @Override
     public boolean useInventoryAmmo(ItemStack gun) {

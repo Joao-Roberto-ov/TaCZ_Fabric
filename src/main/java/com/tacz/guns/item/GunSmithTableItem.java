@@ -6,7 +6,6 @@ import com.tacz.guns.api.item.builder.BlockItemBuilder;
 import com.tacz.guns.api.item.nbt.BlockItemDataAccessor;
 import com.tacz.guns.client.renderer.item.GunSmithTableItemRenderer;
 import com.tacz.guns.client.resource.index.ClientBlockIndex;
-import com.tacz.guns.inventory.tooltip.BlockItemTooltip;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.NonNullList;
@@ -28,16 +27,16 @@ public class GunSmithTableItem extends BlockItem implements BlockItemDataAccesso
         super(block, (new Item.Properties()).stacksTo(1));
     }
 
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                Minecraft minecraft = Minecraft.getInstance();
-                return new GunSmithTableItemRenderer(minecraft.getBlockEntityRenderDispatcher(), minecraft.getEntityModels());
-            }
-        });
-    }
+//    @Override
+//    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+//        consumer.accept(new IClientItemExtensions() {
+//            @Override
+//            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+//                Minecraft minecraft = Minecraft.getInstance();
+//                return new GunSmithTableItemRenderer(minecraft.getBlockEntityRenderDispatcher(), minecraft.getEntityModels());
+//            }
+//        });
+//    }
 
     public static NonNullList<ItemStack> fillItemCategory() {
         NonNullList<ItemStack> stacks = NonNullList.create();

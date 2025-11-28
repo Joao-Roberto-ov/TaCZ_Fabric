@@ -2,7 +2,7 @@ package com.tacz.guns.resource.index;
 
 import com.google.common.base.Preconditions;
 import com.tacz.guns.api.item.attachment.AttachmentType;
-//import com.tacz.guns.resource.CommonAssetsManager;
+//import com.tacz.guns.resource.manager.CommonDataManager;
 import com.tacz.guns.resource.pojo.AttachmentIndexPOJO;
 import com.tacz.guns.resource.pojo.data.attachment.AttachmentData;
 import net.minecraft.resources.ResourceLocation;

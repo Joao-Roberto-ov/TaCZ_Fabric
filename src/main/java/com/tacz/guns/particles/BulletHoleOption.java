@@ -21,28 +21,6 @@ public class BulletHoleOption implements ParticleOptions {
                     Codec.STRING.optionalFieldOf("gun_display_id", DefaultAssets.DEFAULT_GUN_DISPLAY_ID.toString()).forGetter(option -> option.gunDisplayId)
             ).apply(builder, BulletHoleOption::new));
 
-    @SuppressWarnings("deprecation")
-    public static final ParticleOptions.Deserializer<BulletHoleOption> DESERIALIZER = new ParticleOptions.Deserializer<>() {
-        @Override
-        public BulletHoleOption fromCommand(ParticleType<BulletHoleOption> particleType, StringReader reader) throws CommandSyntaxException {
-            reader.expect(' ');
-            int dir = reader.readInt();
-            reader.expect(' ');
-            long pos = reader.readLong();
-            reader.expect(' ');
-            String ammoId = reader.readString();
-            reader.expect(' ');
-            String gunId = reader.readString();
-            reader.expect(' ');
-            String gunDisplayId = reader.readString();
-            return new BulletHoleOption(dir, pos, ammoId, gunId, gunDisplayId);
-        }
-
-        @Override
-        public BulletHoleOption fromNetwork(ParticleType<BulletHoleOption> particleType, FriendlyByteBuf buffer) {
-            return new BulletHoleOption(buffer.readVarInt(), buffer.readLong(), buffer.readUtf(), buffer.readUtf(), buffer.readUtf());
-        }
-    };
 
     private final Direction direction;
     private final BlockPos pos;

@@ -2,8 +2,6 @@
 //
 //import com.tacz.guns.GunModFabric;
 //import com.tacz.guns.entity.sync.core.*;
-//import com.tacz.guns.network.NetworkHandler;
-//import com.tacz.guns.network.message.ServerMessageUpdateEntityData;
 //import net.minecraft.resources.ResourceLocation;
 //import net.minecraft.server.level.ServerPlayer;
 //import net.minecraft.world.entity.Entity;

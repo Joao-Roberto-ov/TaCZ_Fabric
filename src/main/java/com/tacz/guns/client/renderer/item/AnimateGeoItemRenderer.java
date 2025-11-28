@@ -150,26 +150,26 @@ public abstract class AnimateGeoItemRenderer<M extends BedrockAnimatedModel, CTX
     /**
      * 应用状态机的世界摄像机动画，暂时只用于玩家
      */
-    public void applyLevelCameraAnimation(ViewportEvent.ComputeCameraAngles event, ItemStack stack, LocalPlayer player) {
-        this.applyLevelCameraAnimation(event, stack, 1);
-    }
+//    public void applyLevelCameraAnimation(ViewportEvent.ComputeCameraAngles event, ItemStack stack, LocalPlayer player) {
+//        this.applyLevelCameraAnimation(event, stack, 1);
+//    }
 
-    public void applyLevelCameraAnimation(ViewportEvent.ComputeCameraAngles event, ItemStack stack, float multiplier) {
-        var model = getModel(stack);
-        if (model == null) {
-            return;
-        }
-        Quaternionf q = MathUtil.multiplyQuaternion(model.getCameraAnimationObject().rotationQuaternion, multiplier);
-        double yaw = Math.asin(2 * (q.w() * q.y() - q.x() * q.z()));
-        double pitch = Math.atan2(2 * (q.w() * q.x() + q.y() * q.z()), 1 - 2 * (q.x() * q.x() + q.y() * q.y()));
-        double roll = Math.atan2(2 * (q.w() * q.z() + q.x() * q.y()), 1 - 2 * (q.y() * q.y() + q.z() * q.z()));
-        yaw = Math.toDegrees(yaw);
-        pitch = Math.toDegrees(pitch);
-        roll = Math.toDegrees(roll);
-        event.setYaw((float) yaw + event.getYaw());
-        event.setPitch((float) pitch + event.getPitch());
-        event.setRoll((float) roll + event.getRoll());
-    }
+//    public void applyLevelCameraAnimation(ViewportEvent.ComputeCameraAngles event, ItemStack stack, float multiplier) {
+//        var model = getModel(stack);
+//        if (model == null) {
+//            return;
+//        }
+//        Quaternionf q = MathUtil.multiplyQuaternion(model.getCameraAnimationObject().rotationQuaternion, multiplier);
+//        double yaw = Math.asin(2 * (q.w() * q.y() - q.x() * q.z()));
+//        double pitch = Math.atan2(2 * (q.w() * q.x() + q.y() * q.z()), 1 - 2 * (q.x() * q.x() + q.y() * q.y()));
+//        double roll = Math.atan2(2 * (q.w() * q.z() + q.x() * q.y()), 1 - 2 * (q.y() * q.y() + q.z() * q.z()));
+//        yaw = Math.toDegrees(yaw);
+//        pitch = Math.toDegrees(pitch);
+//        roll = Math.toDegrees(roll);
+//        event.setYaw((float) yaw + event.getYaw());
+//        event.setPitch((float) pitch + event.getPitch());
+//        event.setRoll((float) roll + event.getRoll());
+//    }
 
     /**
      * 应用状态机的手持物品摄像机动画，暂时只用于玩家

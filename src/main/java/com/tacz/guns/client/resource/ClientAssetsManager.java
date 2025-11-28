@@ -26,7 +26,7 @@ import com.tacz.guns.client.resource.serialize.AnimationKeyframesSerializer;
 import com.tacz.guns.client.resource.serialize.ItemStackSerializer;
 import com.tacz.guns.client.resource.serialize.SoundEffectKeyframesSerializer;
 import com.tacz.guns.client.resource.serialize.Vector3fSerializer;
-import com.tacz.guns.resource.CommonAssetsManager;
+import com.tacz.guns.resource.manager.CommonDataManager;
 import com.tacz.guns.resource.manager.JsonDataManager;
 import com.tacz.guns.resource.manager.ScriptManager;
 import net.minecraft.client.Minecraft;
@@ -155,10 +155,10 @@ public enum ClientAssetsManager {
         return gltfAnimation.getGltfAnimation(id);
     }
 
-    @Nullable
-    public SoundAssetsManager.SoundData getSoundBuffers(ResourceLocation id) {
-        return soundAssetsManager.getData(id);
-    }
+//    @Nullable
+//    public SoundAssetsManager.SoundData getSoundBuffers(ResourceLocation id) {
+//        return soundAssetsManager.getData(id);
+//    }
 
     @Nullable
     public PackInfo getPackInfo(String namespace) {

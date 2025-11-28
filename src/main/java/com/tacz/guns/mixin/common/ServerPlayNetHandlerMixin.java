@@ -1,7 +1,4 @@
 package com.tacz.guns.mixin.common;
-
-import com.tacz.guns.network.NetworkHandler;
-import com.tacz.guns.network.message.ServerMessageSwapItem;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;

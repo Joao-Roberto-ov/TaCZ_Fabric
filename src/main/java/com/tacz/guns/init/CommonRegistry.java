@@ -1,7 +1,6 @@
 //package com.tacz.guns.init;
 //
 //import com.tacz.guns.entity.sync.ModSyncedEntityData;
-//import com.tacz.guns.network.NetworkHandler;
 //import com.tacz.guns.resource.GunPackLoader;
 //
 //@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)

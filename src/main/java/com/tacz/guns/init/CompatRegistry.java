@@ -3,7 +3,6 @@
 //import com.tacz.guns.client.gui.compat.ClothConfigScreen;
 //import com.tacz.guns.compat.carryon.BlackList;
 //import com.tacz.guns.compat.cloth.MenuIntegration;
-//import com.tacz.guns.compat.oculus.OculusCompat;
 //
 //@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 //public class CompatRegistry {

@@ -6,8 +6,6 @@ import com.tacz.guns.api.event.common.GunMeleeEvent;
 import com.tacz.guns.api.item.IGun;
 import com.tacz.guns.api.item.attachment.AttachmentType;
 import com.tacz.guns.api.item.gun.AbstractGunItem;
-import com.tacz.guns.network.NetworkHandler;
-import com.tacz.guns.network.message.event.ServerMessageGunMelee;
 import com.tacz.guns.resource.index.CommonGunIndex;
 import com.tacz.guns.resource.pojo.data.attachment.MeleeData;
 import com.tacz.guns.resource.pojo.data.gun.GunDefaultMeleeData;

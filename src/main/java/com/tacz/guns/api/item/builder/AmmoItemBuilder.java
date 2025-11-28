@@ -28,7 +28,8 @@ public final class AmmoItemBuilder {
     }
 
     public ItemStack build() {
-        ItemStack ammo = new ItemStack(ModItems.AMMO.get(), this.count);
+        // .get() removido
+        ItemStack ammo = new ItemStack(ModItems.AMMO, this.count);
         if (ammo.getItem() instanceof IAmmo iAmmo) {
             iAmmo.setAmmoId(ammo, this.ammoId);
         }

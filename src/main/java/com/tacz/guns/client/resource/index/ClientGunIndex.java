@@ -5,7 +5,7 @@ import com.google.common.base.Preconditions;
 import com.tacz.guns.client.resource.ClientAssetsManager;
 import com.tacz.guns.client.resource.GunDisplayInstance;
 import com.tacz.guns.client.resource.pojo.display.gun.GunDisplay;
-//import com.tacz.guns.resource.CommonAssetsManager;
+//import com.tacz.guns.resource.manager.CommonDataManager;
 import com.tacz.guns.resource.pojo.GunIndexPOJO;
 import com.tacz.guns.resource.pojo.data.gun.GunData;
 import net.minecraft.resources.ResourceLocation;

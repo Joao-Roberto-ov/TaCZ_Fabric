@@ -3,8 +3,6 @@ package com.tacz.guns.entity.shooter;
 import com.tacz.guns.api.event.common.GunFireSelectEvent;
 import com.tacz.guns.api.item.IGun;
 import com.tacz.guns.api.item.gun.AbstractGunItem;
-import com.tacz.guns.network.NetworkHandler;
-import com.tacz.guns.network.message.event.ServerMessageGunFireSelect;
 import com.tacz.guns.resource.modifier.AttachmentPropertyManager;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;

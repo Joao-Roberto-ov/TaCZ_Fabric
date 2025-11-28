@@ -16,10 +16,6 @@
 //import com.tacz.guns.compat.playeranimator.PlayerAnimatorCompat;
 //import com.tacz.guns.compat.shouldersurfing.ShoulderSurfingCompat;
 //import com.tacz.guns.init.ModItems;
-//import com.tacz.guns.inventory.tooltip.AmmoBoxTooltip;
-//import com.tacz.guns.inventory.tooltip.AttachmentItemTooltip;
-//import com.tacz.guns.inventory.tooltip.BlockItemTooltip;
-//import com.tacz.guns.inventory.tooltip.GunTooltip;
 //import com.tacz.guns.item.AmmoBoxItem;
 //import net.minecraft.client.Minecraft;
 //import net.minecraft.client.renderer.item.ItemProperties;

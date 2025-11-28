@@ -15,8 +15,6 @@ import com.tacz.guns.client.animation.statemachine.GunAnimationStateContext;
 import com.tacz.guns.config.common.AmmoConfig;
 import com.tacz.guns.entity.EntityKineticBullet;
 import com.tacz.guns.entity.shooter.ShooterDataHolder;
-import com.tacz.guns.network.NetworkHandler;
-import com.tacz.guns.network.message.event.ServerMessageGunFire;
 import com.tacz.guns.resource.index.CommonGunIndex;
 import com.tacz.guns.resource.modifier.AttachmentCacheProperty;
 import com.tacz.guns.resource.modifier.custom.AmmoSpeedModifier;
